@@ -281,7 +281,6 @@ export const userlogin = async (req, res, next) => {
       // If it's not an email, assume it's a phone number and find the user by phone
       user = await User.findOne({ phone: identifier });
     }
-
     // Check if the user exists
     if (!user) {
       // return res.status(404).json({ message: 'User not found' });
