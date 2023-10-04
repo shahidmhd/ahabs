@@ -5,6 +5,8 @@ import { generateToken, verifyToken } from '../utils/jwtcreation.js';
 import nodemailer from 'nodemailer'
 import AppError from '../utils/AppError.js'
 import VerificationRecord from '../Models/verificationmodel.js';
+// Schedule the job to run every hour (you can adjust the schedule as needed)
+import cron from 'node-cron'
 
 // Create a Nodemailer transporter using your email service provider's credentials
 const transporter = nodemailer.createTransport({
@@ -85,180 +87,6 @@ export const RegisterUser = async (req, res, next) => {
   }
 }
 
-
-// export const emailverification = async (req, res,next) => {
-
-//   try {
-//     // Extract the user's email from the request body
-//     const { email } = req.body;
-
-
-
-//     // Check if the email already exists in the database (replace this with your database query logic)
-//     const emailExists = await User.findOne({ email: email });
-//     if (emailExists) {
-//       // Email already exists in the database, send an error response
-//       throw new AppError('Email already exists',409)
-
-//     }
-//     // Generate a random verification code (you can use a library like crypto to create a secure code)
-//     const verificationCode = 'wxcvxdresdfg4vbnc44vfttrewq7qaggfh9jjjknknhbghffgvbhjg'; // Replace with a secure code generation method
-
-//     // Replace 'your-localhost-url' with the actual URL of your localhost server
-//     const localhostURL = process.env.Domain_URL;
-
-//     // Create an email verification link with the verification code and route
-//     const verificationLink = `${localhostURL}/verify?code=${verificationCode}`;
-
-
-//     // Send an email with the verification link
-//     const mailOptions = {
-//       from: 'afsal4771@gmail.com',
-//       to: email,
-//       subject: 'Email Verification',
-//       text: `Click on the following link to verify your email: ${verificationLink}`,
-//     };
-
-//     // Send the email
-//     await transporter.sendMail(mailOptions);
-
-//     // Respond with a success message
-//     res.status(200).json({status:'true', message: 'Email verification link sent successfully' });
-//   } catch (error) {
-//    next(error)
-//   }
-// }
-
-export const emailverification = async (req, res, next) => {
-  try {
-    // Extract the user's email from the request body
-    const { email } = req.body;
-
-    // Check if there's an existing verification record for the email
-    let verificationRecord = await VerificationRecord.findOne({ email });
-
-    if (!verificationRecord) {
-      // If there's no existing record, create a new one
-      verificationRecord = new VerificationRecord({ email });
-    }
-
-    // Generate a new random verification code
-    const newVerificationCode = generateRandomCode(6); // Generates a 6-character random code
-
-    // Calculate the expiration time (5 minutes from the current time)
-    const expirationTime = new Date(Date.now() + 5 * 60* 1000); // 5 minutes in milliseconds
-
-    // Update the verification record with the new code and expiration time
-    verificationRecord.code = newVerificationCode;
-    verificationRecord.expiresAt = expirationTime;
-
-    // Save the updated or new verification record to your database
-    await verificationRecord.save();
-
-    // Replace 'your-localhost-url' with the actual URL of your localhost server
-    const localhostURL = process.env.Domain_URL;
-
-    // Create an email verification link with the email and new verification code
-    const verificationLink = `${localhostURL}/verify?email=${email}&code=${newVerificationCode}`;
-
-    // Send an email with the updated or new verification link
-    const mailOptions = {
-      from: 'afsal4771@gmail.com',
-      to: email,
-      subject: 'Email Verification',
-      text: `Click on the following link to verify your email valid up to 5 minutes: ${verificationLink}`,
-    };
-
-    // Send the email
-    await transporter.sendMail(mailOptions);
-
-    // Respond with a success message
-    res.status(200).json({ status: 'true', message: 'Email verification link sent successfully' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-
-// Function to generate a random code of the specified length
-function generateRandomCode(length) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let code = '';
-
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    code += characters.charAt(randomIndex);
-  }
-
-  return code;
-}
-
-
-
-
-
-// export const verifyemail = (req, res,next) => {
-//   try {
-//     // Extract the verification code from the query parameters
-//     const { code } = req.query;
-
-//     // Verify the code (you should compare it with the one generated during registration)
-//     if (code === 'wxcvxdresdfg4vbnc44vfttrewq7qaggfh9jjjknknhbghffgvbhjg') {
-//       // Code is valid, mark the user's email as verified in the database
-//       // You can update the user's document in the database to set their email as verified
-//       // Example:
-//       // const user = await User.findOneAndUpdate({ email: user.email }, { emailVerified: true });
-
-//       // Redirect the user to a success page or send a JSON response
-//       res.status(200).json({status:'true', message: 'Email verification successful' });
-//     } else {
-//       // Invalid code
-//       // res.status(400).json({ message: 'Invalid verification code' });
-//       throw new AppError('Invalid verification code',400)
-//     }
-//   } catch (error) {
-//     // console.error('Email verification error:', error);
-//     // res.status(500).json({ message: 'An error occurred during email verification.' });
-//     next(error)
-//   }
-
-// }
-
-export const verifyemail = async (req, res, next) => {
-  try {
-    // Extract email and verification code from the query parameters
-    const { email, code } = req.query;
-
-    // Find the verification record in the database
-    const verificationRecord = await VerificationRecord.findOne({ email, code });
-
-    if (!verificationRecord) {
-      // Record not found or expired
-      throw new AppError('Invalid verification link', 404)
-    }
-
-    // Check if the verification code is still valid (not expired)
-    const currentTime = new Date();
-    if (verificationRecord.expiresAt <= currentTime) {
-      await VerificationRecord.deleteOne({ email, code });
-      // Code has expired
-      throw new AppError('Verification code has expired',400)
-    
-    }
-
-    // Mark the email as verified (update your user's document in the database here)
-
-    // Delete the verification record from the database
-    await VerificationRecord.deleteOne({ email, code });
-
-    // Respond with a success message
-    return res.status(200).json({ status: 'true', message: 'Email verification successful' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-
 export const userlogin = async (req, res, next) => {
 
   try {
@@ -306,3 +134,128 @@ export const userlogin = async (req, res, next) => {
     next(error)
   }
 }
+
+
+
+
+export const emailverification = async (req, res, next) => {
+  try {
+    // Extract the user's email from the request body
+    const { email } = req.body;
+
+    // Check if there's an existing verification record for the email
+    let verificationRecord = await VerificationRecord.findOne({ email });
+
+    if (!verificationRecord) {
+      // If there's no existing record, create a new one
+      verificationRecord = new VerificationRecord({ email });
+    }
+
+    // Generate a new random 6-digit verification code
+    const newVerificationCode = generateRandomCode();
+
+    // Calculate the expiration time (5 minutes from the current time)
+    const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes in milliseconds
+
+    // Update the verification record with the new code and expiration time
+    verificationRecord.code = newVerificationCode;
+    verificationRecord.expiresAt = expirationTime;
+
+    // Save the updated or new verification record to your database
+    await verificationRecord.save();
+
+    // Create the email message with the verification code
+    const emailMessage = `Your verification code is: ${newVerificationCode}\n\nThis code is valid for 5 minutes.`;
+
+    // Send the email with the verification code
+    const mailOptions = {
+      from: 'afsal4771@gmail.com',
+      to: email,
+      subject: 'Email Verification Code',
+      text: emailMessage,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    // Respond with a success message
+    res.status(200).json({ status: 'true', message: 'Email verification code sent successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+// Function to generate a random code of the specified length
+// Function to generate a random 6-digit code
+function generateRandomCode() {
+  const min = 100000; // Minimum 6-digit number
+  const max = 999999; // Maximum 6-digit number
+  return String(Math.floor(Math.random() * (max - min + 1)) + min);
+}
+
+
+
+// Function to delete expired verification records
+const deleteExpiredVerificationRecords = async () => {
+  try {
+    const now = new Date();
+    await VerificationRecord.deleteMany({ expiresAt: { $lt: now } });
+  } catch (error) {
+    console.error('Error deleting expired verification records:', error);
+  }
+};
+
+// cron.schedule('0 * * * *', deleteExpiredVerificationRecords);
+
+// Schedule the job to run every 1 minute
+// cron.schedule('* * * * *', deleteExpiredVerificationRecords);
+// Schedule the job to run every 5 minutes
+// cron.schedule('*/5 * * * *', deleteExpiredVerificationRecords);
+// Schedule the job to run every day at a specific time (e.g., 3:00 AM)
+cron.schedule('0 3 * * *', deleteExpiredVerificationRecords);
+// Schedule the job to run on the 1st day of every month at a specific time (e.g., 3:00 AM)
+// cron.schedule('0 3 1 * *', deleteExpiredVerificationRecords);
+// Schedule the job to run on a specific date and time every year (e.g., January 1st at 3:00 AM)
+// cron.schedule('0 3 1 1 *', deleteExpiredVerificationRecords);
+
+
+
+
+// verificationController.js
+export const verifyEmail = async (req, res, next) => {
+  try {
+    // Extract email and code from the request body
+    const { email, code } = req.body;
+
+    // Find the verification record in the database
+    const verificationRecord = await VerificationRecord.findOne({ email, code });
+
+    if (!verificationRecord) {
+      // Record not found or expired
+      throw new AppError('Invalid verification code', 404);
+    }
+
+    // Check if the verification code is still valid (not expired)
+    const currentTime = new Date();
+    if (verificationRecord.expiresAt <= currentTime) {
+      // Code has expired
+      throw new AppError('Verification code has expired', 400);
+    }
+
+    // Mark the email as verified (update your user's document in the database here)
+    // Add your logic here to mark the user's email as verified in your database
+    // Example: user.emailVerified = true; await user.save();
+
+    // Delete the verification record from the database
+    await VerificationRecord.deleteOne({ email, code });
+
+    // Respond with a success message
+    return res.status(200).json({ status: 'true', message: 'Email verification successful' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
