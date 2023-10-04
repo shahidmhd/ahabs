@@ -1,0 +1,17 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore log files
+*.log
+
+# Ignore build artifacts
+build/
+dist/
+
+# Ignore environment configuration files
+.env
+.env.local
+
+# Ignore sensitive configuration files (provide specific file names)
+config/secrets.json
+config/apikeys.json
