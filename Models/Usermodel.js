@@ -1,41 +1,52 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import validator from 'validator';
 
-// Define the possible gender options
 const validGenders = ['male', 'female', 'other'];
 
-// Define a Mongoose schema for Users
 const userSchema = new mongoose.Schema({
-    phone: {
-        type: String,
+  phone: {
+    type: String,
+    validate: {
+      validator: (value) => {
+        // Use validator functions to validate phone numbers
+        return validator.isMobilePhone(value, 'any', { strictMode: false });
+      },
+      message: 'Invalid phone number format',
     },
-    email: {
-        type: String,
+  },
+  email: {
+    type: String,
+    validate: {
+      validator: (value) => {
+        // Use validator functions to validate email addresses
+        return validator.isEmail(value);
+      },
+      message: 'Invalid email address',
     },
-    password: {
-        type: String,
-        required: true,
-    },
-    username: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    gender: {
-        type: String,
-        enum: validGenders,
-        required: true,
-    },
-    dateOfBirth: {
-        type: Date,
-        required: true,
-    },
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    minlength: [6, 'Username must be at least 6 characters long'],
+  },
+  gender: {
+    type: String,
+    enum: validGenders,
+    required: true,
+  },
+  dateOfBirth: {
+    type: Date,
+    required: true,
+  },
 }, {
-    timestamps: true, // This option adds 'createdAt' and 'updatedAt' fields
+  timestamps: true,
 });
 
-// Create a Mongoose model for the 'User' collection
 const User = mongoose.model('User', userSchema);
 
-// Export the 'User' model
 export default User;
-
