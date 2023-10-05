@@ -3,6 +3,7 @@ import User from '../Models/Usermodel.js'; // Update the path as needed
 import bcrypt from 'bcrypt';
 import { generateToken, verifyToken } from '../utils/jwtcreation.js';
 import nodemailer from 'nodemailer'
+
 // Create a Nodemailer transporter using your email service provider's credentials
 const transporter = nodemailer.createTransport({
     service: 'Gmail', // e.g., 'Gmail', 'Yahoo', etc.
@@ -67,7 +68,7 @@ export const RegisterUser=async(req,res)=>{
 
 
 export const emailverification=async(req,res)=>{
-    console.log(req.body);
+
     try {
         // Extract the user's email from the request body
         const { email } = req.body;
@@ -75,8 +76,12 @@ export const emailverification=async(req,res)=>{
         // Generate a random verification code (you can use a library like crypto to create a secure code)
         const verificationCode = '123456'; // Replace with a secure code generation method
     
-        // Create an email verification link with the verification code
-        const verificationLink = `https://your-app-url/verify?code=${verificationCode}`;
+     // Replace 'your-localhost-url' with the actual URL of your localhost server
+     const localhostURL =process.env.Domain_URL;
+
+     // Create an email verification link with the verification code and route
+     const verificationLink = `${localhostURL}/verify?code=${verificationCode}`;
+ 
     
         // Send an email with the verification link
         const mailOptions = {
@@ -95,4 +100,29 @@ export const emailverification=async(req,res)=>{
         console.error('Email verification error:', error);
         res.status(500).json({ message: 'An error occurred during email verification.' });
       }
+}
+
+export const verifyemail=(req,res)=>{
+    try {
+        // Extract the verification code from the query parameters
+        const { code } = req.query;
+    
+        // Verify the code (you should compare it with the one generated during registration)
+        if (code === '123456') {
+          // Code is valid, mark the user's email as verified in the database
+          // You can update the user's document in the database to set their email as verified
+          // Example:
+          // const user = await User.findOneAndUpdate({ email: user.email }, { emailVerified: true });
+    
+          // Redirect the user to a success page or send a JSON response
+          res.status(200).json({ message: 'Email verification successful' });
+        } else {
+          // Invalid code
+          res.status(400).json({ message: 'Invalid verification code' });
+        }
+      } catch (error) {
+        console.error('Email verification error:', error);
+        res.status(500).json({ message: 'An error occurred during email verification.' });
+      }
+    
 }
