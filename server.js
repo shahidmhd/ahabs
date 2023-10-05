@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import cors from 'cors'
 import Authrouter from './Routes/Authroutes.js';
 import userRouter from './Routes/userRoutes.js'
+import errorHandlingMiddleware from './middlewear/errorhandlingmiddlewear.js';
 // Load environment variables from a .env file
 dotenv.config();
 
@@ -41,8 +42,7 @@ app.use('/api/admin',userRouter)
 
 
 
-
-// Error handling middleware for undefined routes
+// // Error handling middleware for undefined routes
 app.use((req, res, next) => {
   const error = new Error('Not Found');
   error.status = 404;
@@ -50,22 +50,25 @@ app.use((req, res, next) => {
 });
 
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
+app.use(errorHandlingMiddleware)
 
-    // Set the status code based on the error or default to 500
-    const statusCode = err.status || 500;
 
-    // Create an error response object
-    const errorResponse = {
-        status: 'error',
-        message: err.message || 'Something went wrong!',
+// // Error handling middleware
+// app.use((err, req, res, next) => {
+//     console.error(err.stack);
+
+//     // Set the status code based on the error or default to 500
+//     const statusCode = err.status || 500;
+
+//     // Create an error response object
+//     const errorResponse = {
+//         status: 'error',
+//         message: err.message || 'Something went wrong!',
       
-    };
-    // Send the error response as JSON
-    res.status(statusCode).json(errorResponse);
-});
+//     };
+//     // Send the error response as JSON
+//     res.status(statusCode).json(errorResponse);
+// });
 
 
 // Start the server and log a message when it starts listening

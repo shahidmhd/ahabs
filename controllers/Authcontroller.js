@@ -3,7 +3,7 @@ import User from '../Models/Usermodel.js'; // Update the path as needed
 import bcrypt from 'bcrypt';
 import { generateToken, verifyToken } from '../utils/jwtcreation.js';
 import nodemailer from 'nodemailer'
-import AppError from '../utils/AppError.js';
+import AppError from '../utils/AppError.js'
 
 // Create a Nodemailer transporter using your email service provider's credentials
 const transporter = nodemailer.createTransport({
@@ -16,22 +16,24 @@ const transporter = nodemailer.createTransport({
 });
 
 
-export const RegisterUser = async (req, res) => {
+export const RegisterUser = async (req, res,next) => {
   try {
     // Extract user registration data from the request body
     const { email, phone, password,username, gender, dateOfBirth } = req.body;
     // Check if an email is provided
     // Check if neither email nor phone is provided
     if (!email && !phone) {
-      return res.status(400).json({ message: 'Email or phone is required' });
+      // return res.status(400).json({ message: 'Email or phone is required' });
       // throw new AppError('Email or phone is required', 400);
+      throw new AppError('Email or phone is required',400)
     }
 
     if (email) {
       // Check if the email already exists in the database
       const existingEmailUser = await User.findOne({ email });
       if (existingEmailUser) {
-        return res.status(409).json({ message: 'Email already exists' });
+        // return res.status(409).json({ message: 'Email already exists' });
+        throw new AppError('Email already exists',409)
       }
     }
 
@@ -39,14 +41,17 @@ export const RegisterUser = async (req, res) => {
       // Check if the phone number already exists in the database
       const existingPhoneUser = await User.findOne({ phone });
       if (existingPhoneUser) {
-        return res.status(409).json({ message: 'Phone number already exists'});
+        // return res.status(409).json({ message: 'Phone number already exists'});
+        throw new AppError('Phone number already exists',409)
       }
     }
     if (username) {
       // Check if the phone number already exists in the database
       const existingusername = await User.findOne({ username });
       if (existingusername) {
-        return res.status(409).json({ message: 'username already exists' });
+        // return res.status(409).json({ message: 'username already exists' });
+        throw new AppError('username already exists',409)
+
       }
     }
     // Hash the user's password
@@ -71,8 +76,11 @@ export const RegisterUser = async (req, res) => {
     // Return the token as a response
     res.status(201).json({ message: 'User registered successfully', token });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'An error occurred during registration.' });
+    // console.error('Registration error:', error);
+    // res.status(500).json({ message: 'An error occurred during registration.' });
+    // throw new AppError('Email or phone is required', 400);
+    next(error)
+
   }
 }
 
@@ -112,7 +120,7 @@ export const emailverification = async (req, res) => {
   }
 }
 
-export const verifyemail = (req, res) => {
+export const verifyemail = (req, res,next) => {
   try {
     // Extract the verification code from the query parameters
     const { code } = req.query;
@@ -128,17 +136,19 @@ export const verifyemail = (req, res) => {
       res.status(200).json({ message: 'Email verification successful' });
     } else {
       // Invalid code
-      res.status(400).json({ message: 'Invalid verification code' });
+      // res.status(400).json({ message: 'Invalid verification code' });
+      throw new AppError('Invalid verification code',400)
     }
   } catch (error) {
-    console.error('Email verification error:', error);
-    res.status(500).json({ message: 'An error occurred during email verification.' });
+    // console.error('Email verification error:', error);
+    // res.status(500).json({ message: 'An error occurred during email verification.' });
+    next(error)
   }
 
 }
 
 
-export const userlogin = async(req,res) => {
+export const userlogin = async(req,res,next) => {
 
   try {
     // Extract user login data from the request body
@@ -146,7 +156,8 @@ export const userlogin = async(req,res) => {
 
     // Check if either identifier or password is missing
     if (!identifier || !password) {
-      return res.status(400).json({ message: 'Email or password are required' });
+      // return res.status(400).json({ message: 'Email or password are required' });
+      throw new AppError('Email or password are required',400)
     }
 
     let user;
@@ -162,14 +173,16 @@ export const userlogin = async(req,res) => {
 
     // Check if the user exists
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      // return res.status(404).json({ message: 'User not found' });
+      throw new AppError('User not found',400)
     }
 
     // Check if the provided password matches the stored hashed password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid password' });
+      // return res.status(401).json({ message: 'Invalid password' });
+      throw new AppError('Invalid password',401)
     }
 
     // Generate a JWT token for the authenticated user
@@ -178,7 +191,8 @@ export const userlogin = async(req,res) => {
     // Return the token as a response
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'An error occurred during login.' });
+    // console.error('Login error:', error);
+    // res.status(500).json({ message: 'An error occurred during login.' });
+    next(error)
   }
 }

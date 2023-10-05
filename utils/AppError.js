@@ -1,5 +1,6 @@
 class AppError extends Error {
     constructor(message, statusCode) {
+        console.log(statusCode,message,"yyyyyyyyyyyyyy");
       super(message);
   
       this.statusCode = statusCode;
@@ -7,11 +8,8 @@ class AppError extends Error {
       this.isOperational = true;
   
       Error.captureStackTrace(this, this.constructor);
-  
-      // Add the error message to the AppError instance
-      this.message = message;
     }
   }
   
-  export default AppError;
+  export default AppError; // Export the AppError class as the default export
   
