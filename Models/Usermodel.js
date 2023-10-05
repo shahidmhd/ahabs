@@ -5,21 +5,20 @@ const validGenders = ['male', 'female', 'other'];
 
 // Define a Mongoose schema for Users
 const userSchema = new mongoose.Schema({
-    phone:{
+    phone: {
         type: String,
     },
     email: {
         type: String,
-      
     },
     password: {
         type: String,
         required: true,
     },
-    username:{
+    username: {
         type: String,
         required: true,
-        unique:true
+        unique: true
     },
     gender: {
         type: String,
@@ -39,3 +38,4 @@ const User = mongoose.model('User', userSchema);
 
 // Export the 'User' model
 export default User;
+

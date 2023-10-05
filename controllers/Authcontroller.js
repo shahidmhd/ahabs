@@ -3,6 +3,7 @@ import User from '../Models/Usermodel.js'; // Update the path as needed
 import bcrypt from 'bcrypt';
 import { generateToken, verifyToken } from '../utils/jwtcreation.js';
 import nodemailer from 'nodemailer'
+import AppError from '../utils/AppError.js';
 
 // Create a Nodemailer transporter using your email service provider's credentials
 const transporter = nodemailer.createTransport({
@@ -23,6 +24,7 @@ export const RegisterUser = async (req, res) => {
     // Check if neither email nor phone is provided
     if (!email && !phone) {
       return res.status(400).json({ message: 'Email or phone is required' });
+      // throw new AppError('Email or phone is required', 400);
     }
 
     if (email) {
@@ -37,7 +39,7 @@ export const RegisterUser = async (req, res) => {
       // Check if the phone number already exists in the database
       const existingPhoneUser = await User.findOne({ phone });
       if (existingPhoneUser) {
-        return res.status(409).json({ message: 'Phone number already exists' });
+        return res.status(409).json({ message: 'Phone number already exists'});
       }
     }
     if (username) {

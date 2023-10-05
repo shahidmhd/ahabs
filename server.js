@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors'
 import Authrouter from './Routes/Authroutes.js';
+import userRouter from './Routes/userRoutes.js'
 // Load environment variables from a .env file
 dotenv.config();
 
@@ -29,17 +30,43 @@ dbConfig(); // Call the connectDB function
 
 
 
-
-
-
 // Define a route that responds with "Hello World!" for the root URL
-app.use('/auth',Authrouter)
+app.use('/api/auth',Authrouter)
+app.use('/api/admin',userRouter)
+
+
+
+
+
+
+
+
+
+// Error handling middleware for undefined routes
+app.use((req, res, next) => {
+  const error = new Error('Not Found');
+  error.status = 404;
+  next(error);
+});
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something went wrong!');
-  });
+
+    // Set the status code based on the error or default to 500
+    const statusCode = err.status || 500;
+
+    // Create an error response object
+    const errorResponse = {
+        status: 'error',
+        message: err.message || 'Something went wrong!',
+      
+    };
+    // Send the error response as JSON
+    res.status(statusCode).json(errorResponse);
+});
+
 
 // Start the server and log a message when it starts listening
 app.listen(port, () => {
