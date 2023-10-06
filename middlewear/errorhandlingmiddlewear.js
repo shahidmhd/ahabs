@@ -12,6 +12,8 @@
 //     }
 // }
 // export default errorHandlingMidlleware
+
+
 import mongoose from 'mongoose'; // Import mongoose at the beginning
 const errorHandlingMiddleware = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
@@ -43,3 +45,11 @@ const errorHandlingMiddleware = (err, req, res, next) => {
   
   export default errorHandlingMiddleware;
   
+
+
+
+
+
+
+
+

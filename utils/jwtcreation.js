@@ -10,7 +10,7 @@ export const generateToken=(userId) =>{
 
 export const verifyToken=(token)=> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token,process.env.JWT_SECRET);
     return decoded;
   } catch (error) {
     throw new Error('Token verification failed');
