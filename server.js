@@ -33,7 +33,7 @@ dbConfig(); // Call the connectDB function
 
 // Define a route that responds with "Hello World!" for the root URL
 app.use('/api/auth',Authrouter)
-app.use('/api/admin',userRouter)
+app.use('/api/user',userRouter)
 
 
 

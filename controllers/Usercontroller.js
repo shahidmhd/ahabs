@@ -13,3 +13,13 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
+
+export const editprofile=async(req,res)=>{
+console.log(req.params.username);
+}
+
+
+export const addprofilepicture=async(req,res)=>{
+  console.log(req.params.username);
+  }
+  

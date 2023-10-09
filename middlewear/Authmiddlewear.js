@@ -16,7 +16,6 @@ const userAuthMid = (req, res, next) => {
 
     // Verify the token and extract the user ID
     const { userId } = verifyToken(token);
-
     // If the token is invalid or doesn't contain a user ID, return an error
     if (!userId) {
       throw new AppError('Authentication failed: Invalid token', 401);
