@@ -36,8 +36,6 @@ import upload from '../config/multerconfig.js'
 
 router.get('/getallusers', userAuthMid, getAllUsers);
 router.post('/editprofile/:id', userAuthMid, editprofile);
-
-// Define the route for adding a profile picture
 router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'),addprofilepicture);
 
 
