@@ -1,5 +1,6 @@
 import User from '../Models/Usermodel.js'; // Import your User model (adjust the import path as needed)
 import {AWS,s3} from '../config/Awss3.js'
+import AppError from '../utils/AppError.js';
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -20,15 +21,15 @@ console.log(req.params.username);
 }
 
 
-export const addprofilepicture=async(req,res)=>{
+export const addprofilepicture=async(req,res,next)=>{
   try {
     if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded.' });
+      throw new AppError('No file uploaded.',400)
     }
 
     const { originalname, buffer } = req.file;
     const params = {
-        Bucket: 'samplephotocyenosure',
+        Bucket: 'shahidbucketsample',
         Key: `profile-pictures/${originalname}`, // Adjust the path and filename as needed
         Body: buffer,
     };
@@ -43,7 +44,7 @@ export const addprofilepicture=async(req,res)=>{
     return res.status(200).json({ message: 'File uploaded successfully', imageUrl });
 } catch (error) {
     console.error('Error uploading file to S3:', error);
-    return res.status(500).json({ message: 'Internal server error.' });
+    next(error)
 }
   }
   
