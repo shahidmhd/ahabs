@@ -24,54 +24,24 @@
 // export default router;
 
 
-import {editprofile, getAllUsers } from '../controllers/Usercontroller.js';
+import {addprofilepicture, editprofile, getAllUsers } from '../controllers/Usercontroller.js';
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import express from 'express';
 const router = express.Router();
-import AWS from 'aws-sdk';
-import multer from 'multer';
-AWS.config.update({
-    accessKeyId: 'AKIAR5FOBP3TTH2MPK4H',
-    secretAccessKey: 'a1+LDYQHT119dPWp/uU4Q1z81hCc3lmY8YnFLbfW',
-    region: 'ap-south-1', // Replace with the desired AWS region
-});
-
-const s3 = new AWS.S3();
+import upload from '../config/multerconfig.js'
 
 
-const storage = multer.memoryStorage(); // Store files in memory
-const upload = multer({ storage });
+
+
+
 
 router.post('/editprofile/:id', userAuthMid, editprofile);
 router.get('/getallusers', userAuthMid, getAllUsers);
 
 // Define the route for adding a profile picture
-router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded.' });
-        }
-
-        const { originalname, buffer } = req.file;
-        const params = {
-            Bucket: 'samplephotocyenosure',
-            Key: `profile-pictures/${originalname}`, // Adjust the path and filename as needed
-            Body: buffer,
-        };
+router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'),addprofilepicture);
 
 
-        // Upload the file to S3
-        const uploadResponse = await s3.upload(params).promise();
-
-        // Get the URL of the uploaded image
-        const imageUrl = uploadResponse.Location;
-
-        return res.status(200).json({ message: 'File uploaded successfully', imageUrl });
-    } catch (error) {
-        console.error('Error uploading file to S3:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
-    }
-});
 // router.post('/addprofilepictures/:id', userAuthMid, upload.array('profilePictures', 5), async (req, res) => {
 //     try {
 //         const files = req.files;

@@ -8,7 +8,6 @@
 
 // const s3 = new AWS.S3();
 // awsConfig.js
-
 import AWS from 'aws-sdk';
 
 AWS.config.update({
