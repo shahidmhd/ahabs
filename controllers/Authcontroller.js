@@ -74,7 +74,7 @@ export const RegisterUser = async (req, res,next) => {
     const token = generateToken(newUser._id)
 
     // Return the token as a response
-    res.status(201).json({ message: 'User registered successfully', token });
+    res.status(201).json({status:'true',message: 'User registered successfully', token });
   } catch (error) {
     // console.error('Registration error:', error);
     // res.status(500).json({ message: 'An error occurred during registration.' });
@@ -85,7 +85,7 @@ export const RegisterUser = async (req, res,next) => {
 }
 
 
-export const emailverification = async (req, res) => {
+export const emailverification = async (req, res,next) => {
 
   try {
     // Extract the user's email from the request body
@@ -113,10 +113,11 @@ export const emailverification = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     // Respond with a success message
-    res.status(200).json({ message: 'Email verification link sent successfully' });
+    res.status(200).json({status:'true', message: 'Email verification link sent successfully' });
   } catch (error) {
     console.error('Email verification error:', error);
-    res.status(500).json({ message: 'An error occurred during email verification.' });
+    // res.status(500).json({ message: 'An error occurred during email verification.' });
+    next(error)
   }
 }
 
