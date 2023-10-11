@@ -234,14 +234,16 @@ export const verifyEmail = async (req, res, next) => {
 
     if (!verificationRecord) {
       // Record not found or expired
-      throw new AppError('Invalid verification code', 404);
+      // throw new AppError('Invalid verification code', 404);
+      return res.status(404).json({ status: "fail", message: 'Invalid verification code' });
     }
 
     // Check if the verification code is still valid (not expired)
     const currentTime = new Date();
     if (verificationRecord.expiresAt <= currentTime) {
       // Code has expired
-      throw new AppError('Verification code has expired', 400);
+      // throw new AppError('Verification code has expired', 400);
+      return res.status(400).json({ status: "fail", message: 'Verification code has expired' });
     }
 
     // Mark the email as verified (update your user's document in the database here)
