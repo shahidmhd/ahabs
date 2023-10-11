@@ -107,3 +107,9 @@ export const addprofilepicture = async (req, res, next) => {
     next(error)
   }
 }
+
+
+
+export const chat=(req,res)=>{
+  console.log("hhhhhhhhhhhhhhhhhhhhhi");
+}
