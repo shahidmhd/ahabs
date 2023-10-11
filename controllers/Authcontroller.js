@@ -75,9 +75,8 @@ export const RegisterUser = async (req, res, next) => {
 
     // Create a JWT token for the newly registered user
     const token = generateToken(newUser._id)
-
     // Return the token as a response
-    res.status(201).json({ status: 'true', message: 'User registered successfully', token });
+    res.status(201).json({ status: 'true',userId:newUser._id, message: 'User registered successfully', token });
   } catch (error) {
     // console.error('Registration error:', error);
     // res.status(500).json({ message: 'An error occurred during registration.' });
@@ -127,7 +126,7 @@ export const userlogin = async (req, res, next) => {
     const token = generateToken(user._id);
 
     // Return the token as a response
-    res.status(200).json({ status: 'true', message: 'Login successful', token });
+    res.status(200).json({ status: 'true',userId:user._id, message: 'Login successful', token });
   } catch (error) {
     // console.error('Login error:', error);
     // res.status(500).json({ message: 'An error occurred during login.' });

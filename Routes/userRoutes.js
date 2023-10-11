@@ -24,7 +24,7 @@
 // export default router;
 
 
-import {addprofilepicture, editprofile, getAllUsers } from '../controllers/Usercontroller.js';
+import {addprofilepicture, currentuser, editprofile, getAllUsers } from '../controllers/Usercontroller.js';
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import express from 'express';
 const router = express.Router();
@@ -36,6 +36,7 @@ import upload from '../config/multerconfig.js'
 
 router.get('/getallusers', userAuthMid, getAllUsers);
 router.post('/editprofile/:id', userAuthMid, editprofile);
+router.get('/currentuser/:id', userAuthMid, currentuser);
 router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'),addprofilepicture);
 
 

@@ -110,6 +110,22 @@ export const addprofilepicture = async (req, res, next) => {
 
 
 
-export const chat=(req,res)=>{
-  console.log("hhhhhhhhhhhhhhhhhhhhhiiiiiiiiii");
+export const currentuser=async(req,res,next)=>{
+  const userId = req.params.id;
+  try {
+    // Fetch the user from the database based on the id parameter
+    const user = await User.findById(userId);
+
+    if (user) {
+    res.status(200).json({
+        status: 'true',
+        user,
+      });
+    } else {
+    throw new AppError('user not found',404)
+    }
+  } catch (err) {
+   next(err)
+  }
+
 }

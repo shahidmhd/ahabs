@@ -33,7 +33,7 @@ const errorHandlingMiddleware = (err, req, res, next) => {
   
     if (err.statusCode === 404) {
       // Handle 404 errors
-      return res.status(err.statusCode).json({ errors: err.status, errorMessage: err.message });
+      return res.status(err.statusCode).json({ status: err.status, message: err.message });
     }
   
     // Handle other errors
