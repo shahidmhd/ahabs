@@ -24,7 +24,7 @@
 // export default router;
 
 
-import {addprofilepicture, currentuser, editprofile, getAllUsers } from '../controllers/Usercontroller.js';
+import {addprofilepicture, checkFollowStatus, currentuser, editprofile, followuser, getAllUsers, unfollowUser } from '../controllers/Usercontroller.js';
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import express from 'express';
 const router = express.Router();
@@ -38,7 +38,10 @@ router.get('/getallusers', userAuthMid, getAllUsers);
 router.post('/editprofile/:id', userAuthMid, editprofile);
 router.get('/currentuser/:id', userAuthMid, currentuser);
 router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'),addprofilepicture);
-
+router.post('/follow/:id', userAuthMid,followuser);
+router.post('/unfollow/:id', userAuthMid,unfollowUser);
+// Set up the GET route to check follow status
+router.post('/checkFollowStatus/:id',checkFollowStatus);
 
 // router.post('/addprofilepictures/:id', userAuthMid, upload.array('profilePictures', 5), async (req, res) => {
 //     try {

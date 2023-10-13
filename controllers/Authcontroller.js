@@ -141,7 +141,15 @@ export const emailverification = async (req, res, next) => {
   try {
     // Extract the user's email from the request body
     const { email } = req.body;
+  // Check if there's an existing user with the provided email
+  const existingUser = await User.findOne({ email });
 
+  if (existingUser) {
+    // Check if the user is already verified
+      // User is already verified
+      return res.status(400).json({ status: 'fail', message: 'User is already exist' });
+    
+  }
     // Check if there's an existing verification record for the email
     let verificationRecord = await VerificationRecord.findOne({ email });
 
@@ -244,7 +252,16 @@ export const verifyEmail = async (req, res, next) => {
       // throw new AppError('Verification code has expired', 400);
       return res.status(400).json({ status: "fail", message: 'Verification code has expired' });
     }
+ // Mark the email as verified (update your user's document in the database here)
+//  const user = await User.findOne({ email });
 
+//  if (!user) {
+//    return res.status(404).json({ status: 'fail', message: 'User not found' });
+//  }
+
+//  // Update the user's "verified" field to true
+//  user.verified = true;
+//  await user.save();
     // Mark the email as verified (update your user's document in the database here)
     // Add your logic here to mark the user's email as verified in your database
     // Example: user.emailVerified = true; await user.save();

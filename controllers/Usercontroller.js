@@ -79,6 +79,7 @@ export const editprofile = async (req, res,next) => {
 
 
 export const addprofilepicture = async (req, res, next) => {
+  const userId = req.params.id;
   try {
     if (!req.file) {
       throw new AppError('No file uploaded.', 400)
@@ -98,7 +99,7 @@ export const addprofilepicture = async (req, res, next) => {
     // Get the URL of the uploaded image
     const imageUrl = uploadResponse.Location;
     // Update the user's profile picture URL in the database
-    await User.findByIdAndUpdate(id, { profilepicture: imageUrl });
+    await User.findByIdAndUpdate(userId, { profilepicture: imageUrl });
 
 
     return res.status(200).json({ message: 'profile uploaded successfully', imageUrl });
@@ -129,3 +130,108 @@ export const currentuser=async(req,res,next)=>{
   }
 
 }
+
+
+export const followuser = async (req, res, next) => {
+  const currentUserId = req.body.currentUserId; // Get the current user ID from req.body
+  const friendId = req.params.id; // Get the friend's ID from route parameters
+
+  try {
+    const currentUser = await User.findById(currentUserId); // Assuming currentUserId refers to the current user
+    const friendToFollow = await User.findById(friendId);
+
+    if (!friendToFollow) {
+      return res.status(404).json({ message: 'Friend not found' });
+    }
+
+    // Check if the current user is already following the friend
+    if (currentUser.following.includes(friendId)) {
+      return res.status(400).json({ message: 'You are already following this friend' });
+    }
+
+    // Update the current user's following list
+    currentUser.following.push(friendId);
+
+    // Update the friend's followers list
+    friendToFollow.followers.push(currentUserId);
+
+    // Save both user documents
+    await Promise.all([currentUser.save(), friendToFollow.save()]);
+
+    res.status(200).json({ message: 'You are now following this friend' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const unfollowUser = async (req, res, next) => {
+  const currentUserId = req.body.currentUserId; // Get the current user ID from req.body
+  const friendId = req.params.id; // Get the friend's ID from route parameters
+
+  try {
+    // Find the current user and the friend to unfollow
+    const currentUser = await User.findById(currentUserId);
+    const friendToUnfollow = await User.findById(friendId);
+
+    if (!currentUser || !friendToUnfollow) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the current user is not following the friend
+    if (!currentUser.following.includes(friendId)) {
+      return res.status(400).json({ message: 'You are not following this friend' });
+    }
+
+    // Remove the friend from the current user's following list
+    currentUser.following = currentUser.following.filter(id => id.toString() !== friendId);
+
+    // Remove the current user from the friend's followers list
+    friendToUnfollow.followers = friendToUnfollow.followers.filter(id => id.toString() !== currentUserId);
+
+    // Save both user documents
+    await Promise.all([currentUser.save(), friendToUnfollow.save()]);
+
+    res.status(200).json({ message: 'You have unfollowed this friend' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+export const checkFollowStatus = async (req, res, next) => {
+  const currentUserId = req.body.currentUserId; // Get the current user ID from req.body
+  const userIdToCheck = req.params.id; // Get the user's ID to check from route parameters
+
+  try {
+    // Find the current user and the user to check
+    const currentUser = await User.findById(currentUserId);
+    const userToCheck = await User.findById(userIdToCheck);
+
+    if (!currentUser || !userToCheck) {
+      // return res.status(404).json({ message: 'User not found' });
+      throw new AppError('User not found ',404)
+    }
+
+    // Check if the current user is following the user to check
+    const isFollowing = currentUser.following.includes(userIdToCheck);
+
+    // Check if the user to check is following the current user
+    const isFollowedBy = userToCheck.following.includes(currentUserId);
+
+    // Check if it's a mutual follow (both follow each other)
+    const isMutualFollow = isFollowing && isFollowedBy;
+
+    if (isMutualFollow) {
+      return res.status(200).json({ message: 'Both' });
+    } else if (isFollowing) {
+      return res.status(200).json({ message: 'following' });
+    } else if (isFollowedBy) {
+      return res.status(200).json({ message: 'follower' });
+    } else {
+      return res.status(200).json({ message: 'Neither' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

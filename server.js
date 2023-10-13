@@ -18,10 +18,14 @@ const app = express();
 const port = process.env.PORT || 3000; // Default to port 3000 if PORT is not defined in .env
 
 
+
+if(process.env.NODE_ENV==="development"){
+  app.use(morgan('dev')); // Logging middleware
+}
 // Middleware
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true }))
-app.use(morgan('dev')); // Logging middleware
+// app.use(morgan('dev')); // Logging middleware
 app.use(helmet()); // Helmet for security headers
 app.use(cors())
 
