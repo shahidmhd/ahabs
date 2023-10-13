@@ -8,7 +8,7 @@ export const getAllUsers = async (req, res, next) => {
     const users = await User.find();
 
     // Return the users as a JSON response
-    res.status(200).json({ success: 'true', count: users.length, data: users });
+    res.status(200).json({ status:'true', count: users.length, data: users });
   } catch (error) {
     console.log(error);
     // Handle any errors that occur during the database query
@@ -70,7 +70,7 @@ export const editprofile = async (req, res,next) => {
     await user.save();
 
     // Respond with a success message and the updated user document
-    res.status(200).json({ success:'true', message: 'Profile updated successfully'});
+    res.status(200).json({ status:'true', message: 'Profile updated successfully'});
   } catch (error) {
     console.error('Error updating profile:', error);
     next(error);
@@ -102,7 +102,7 @@ export const addprofilepicture = async (req, res, next) => {
     await User.findByIdAndUpdate(userId, { profilepicture: imageUrl });
 
 
-    return res.status(200).json({ message: 'profile uploaded successfully', imageUrl });
+    return res.status(200).json({status:'true', message: 'profile uploaded successfully', imageUrl });
   } catch (error) {
     console.error('Error uploading file to S3:', error);
     next(error)
@@ -141,12 +141,12 @@ export const followuser = async (req, res, next) => {
     const friendToFollow = await User.findById(friendId);
 
     if (!friendToFollow) {
-      return res.status(404).json({ message: 'Friend not found' });
+      throw new AppError('Friend not found',404)
     }
 
     // Check if the current user is already following the friend
     if (currentUser.following.includes(friendId)) {
-      return res.status(400).json({ message: 'You are already following this friend' });
+      throw new AppError('You are already following this friend',400)
     }
 
     // Update the current user's following list
@@ -158,10 +158,10 @@ export const followuser = async (req, res, next) => {
     // Save both user documents
     await Promise.all([currentUser.save(), friendToFollow.save()]);
 
-    res.status(200).json({ message: 'You are now following this friend' });
+    res.status(200).json({status:'true', message: 'You are now following this friend' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+   next(error)
   }
 };
 
@@ -175,12 +175,12 @@ export const unfollowUser = async (req, res, next) => {
     const friendToUnfollow = await User.findById(friendId);
 
     if (!currentUser || !friendToUnfollow) {
-      return res.status(404).json({ message: 'User not found' });
+      throw new AppError('User not found',404)
     }
 
     // Check if the current user is not following the friend
     if (!currentUser.following.includes(friendId)) {
-      return res.status(400).json({ message: 'You are not following this friend' });
+      throw new AppError('You are not following this friend',400)
     }
 
     // Remove the friend from the current user's following list
@@ -192,10 +192,10 @@ export const unfollowUser = async (req, res, next) => {
     // Save both user documents
     await Promise.all([currentUser.save(), friendToUnfollow.save()]);
 
-    res.status(200).json({ message: 'You have unfollowed this friend' });
+    res.status(200).json({status:'true', message: 'You have unfollowed this friend' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    next(error)
   }
 };
 export const checkFollowStatus = async (req, res, next) => {
@@ -265,7 +265,7 @@ export const listFollowers = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    next(error)
   }
 };
 export const listFollowing = async (req, res, next) => {
@@ -294,6 +294,6 @@ export const listFollowing = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+   next(error)
   }
 };
