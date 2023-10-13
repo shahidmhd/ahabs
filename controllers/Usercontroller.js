@@ -235,3 +235,65 @@ export const checkFollowStatus = async (req, res, next) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+export const listFollowers = async (req, res, next) => {
+  const currentUserId = req.params.id; // Get the current user's ID from route parameters
+
+  try {
+    // Find the current user
+    const currentUser = await User.findById(currentUserId);
+
+    if (!currentUser) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Get the IDs of the current user's followers
+    const followerIds = currentUser.followers;
+
+    // Fetch the follower profiles based on their IDs
+    
+    // Fetch the follower profiles based on their IDs, selecting only the specified fields
+    const followers = await User.find(
+      { _id: { $in: followerIds } },
+      { username: 1, profilepicture: 1, _id: 1 }
+    );
+
+    res.status(200).json({
+      status: 'true',
+      followers,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+export const listFollowing = async (req, res, next) => {
+  const currentUserId = req.params.id; // Get the current user's ID from route parameters
+
+  try {
+    // Find the current user
+    const currentUser = await User.findById(currentUserId);
+
+    if (!currentUser) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Get the IDs of the users that the current user is following
+    const followingIds = currentUser.following;
+
+    // Fetch the following profiles based on their IDs, selecting the desired fields
+    const following = await User.find(
+      { _id: { $in: followingIds } },
+      { username: 1, profilepicture: 1, _id: 1 }
+    );
+
+    res.status(200).json({
+      status: 'true',
+      following,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
