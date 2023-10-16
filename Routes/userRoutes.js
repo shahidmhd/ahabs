@@ -24,7 +24,7 @@
 // export default router;
 
 
-import {addprofilepicture, checkFollowStatus, currentuser, editprofile, followuser, getAllUsers, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
+import {addprofilepicture, checkFollowStatus, createRoom, currentuser, editprofile, followuser, getAllUsers, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import express from 'express';
 const router = express.Router();
@@ -44,6 +44,12 @@ router.post('/unfollow/:id', userAuthMid,unfollowUser);
 router.post('/checkFollowStatus/:id',checkFollowStatus);
 router.get ('/listfollowers/:id',listFollowers)
 router.get ('/listfollowing/:id',listFollowing)
+
+router.post('/create-room/:id',userAuthMid,createRoom);
+
+
+
+
 
 // router.post('/addprofilepictures/:id', userAuthMid, upload.array('profilePictures', 5), async (req, res) => {
 //     try {

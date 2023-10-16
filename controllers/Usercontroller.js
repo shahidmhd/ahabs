@@ -1,7 +1,7 @@
 import User from '../Models/Usermodel.js'; // Import your User model (adjust the import path as needed)
 import { AWS, s3 } from '../config/Awss3.js'
 import AppError from '../utils/AppError.js';
-
+import Room from '../Models/Roommodel.js';
 export const getAllUsers = async (req, res, next) => {
   try {
     // Fetch all users from the database
@@ -133,7 +133,7 @@ export const currentuser=async(req,res,next)=>{
 
 
 export const followuser = async (req, res, next) => {
-  const currentUserId = req.body.currentUserId; // Get the current user ID from req.body
+  const currentUserId = req.userId; // Get the current user ID from req.body
   const friendId = req.params.id; // Get the friend's ID from route parameters
 
   try {
@@ -166,9 +166,9 @@ export const followuser = async (req, res, next) => {
 };
 
 export const unfollowUser = async (req, res, next) => {
-  const currentUserId = req.body.currentUserId; // Get the current user ID from req.body
+  const currentUserId =req.userId; // Get the current user ID from req.body
   const friendId = req.params.id; // Get the friend's ID from route parameters
-
+console.log(currentUserId);
   try {
     // Find the current user and the friend to unfollow
     const currentUser = await User.findById(currentUserId);
@@ -199,7 +199,7 @@ export const unfollowUser = async (req, res, next) => {
   }
 };
 export const checkFollowStatus = async (req, res, next) => {
-  const currentUserId = req.body.currentUserId; // Get the current user ID from req.body
+  const currentUserId = req.userId; // Get the current user ID from req.body
   const userIdToCheck = req.params.id; // Get the user's ID to check from route parameters
 
   try {
@@ -297,3 +297,49 @@ export const listFollowing = async (req, res, next) => {
    next(error)
   }
 };
+
+
+export const createRoom = async (req, res, next) => {
+  try {
+    const selectedUserId = req.params.id;
+    const createdByUserId = req.userId;
+
+    // Check if a room with the same members exists
+    const existingRoom = await Room.findOne({
+      $and: [
+        { 'members.user': selectedUserId },
+        { 'members.user': createdByUserId },
+      ],
+    });
+    // $and: [
+    //   { 'members.user': { $all: [selectedUserId, createdByUserId, ...otherUserIds] },
+    // ],
+    if (existingRoom) {
+      // If a room with the same members exists, return the existing room
+      return res.status(200).json(existingRoom);
+    }
+    const newRoomName = `Room_${Date.now()}`;
+    // Create a new room
+    const newRoom = new Room({
+      name: newRoomName,
+      createdBy: createdByUserId,
+      members: [
+        {
+          user: selectedUserId,
+        },
+        {
+          user: createdByUserId,
+        },
+      ],
+    });
+
+    const room = await newRoom.save();
+    console.log('Room created:', room);
+    res.status(201).json(room);
+  } catch (err) {
+    console.error('Error creating or checking the room:', err);
+    next(err);
+  }
+};
+
+
