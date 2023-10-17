@@ -21,7 +21,12 @@ const port = process.env.PORT || 3000; // Default to port 3000 if PORT is not de
 
 
 // Create a Socket.io server and attach it to the HTTP server
-const io = new Server(server);
+// const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: '*', // Replace with your frontend app's URL
+  }
+});
 
 if(process.env.NODE_ENV==="development"){
   app.use(morgan('dev')); // Logging middleware
@@ -46,17 +51,6 @@ app.use('/api/user',userRouter)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 // // Error handling middleware for undefined routes
 app.use((req, res, next) => {
   const error = new Error('Not Found');
@@ -66,16 +60,32 @@ app.use((req, res, next) => {
 
 app.use(errorHandlingMiddleware)
 // Socket.io connection
+// Store online users
+const onlineUsers = new Set();
+
 io.on('connection', (socket) => {
-  console.log('A user connected');
-console.log(socket);
-  // Handle your Socket.io events here
+  console.log("socket connected");
+  console.log(`User connected with socket.id: ${socket.id}`);
+  onlineUsers.add(socket.id);
+
+  // Notify everyone when a user joins
+  socket.broadcast.emit('user-joined', socket.id);
+
+  // Listen for chat messages
+  socket.on('chat-message', (message) => {
+    // Broadcast the message to all connected users
+    io.emit('chat-message', { id: socket.id, message });
+  });
 
   // Listen for disconnection
   socket.on('disconnect', () => {
-    console.log('User disconnected');
+    console.log(`User disconnected with socket.id: ${socket.id}`);
+    onlineUsers.delete(socket.id);
+    // Notify everyone when a user leaves
+    socket.broadcast.emit('user-left', socket.id);
   });
 });
+
 
 // Start the server and log a message when it starts listening
 app.listen(port, () => {
