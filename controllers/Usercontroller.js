@@ -343,3 +343,32 @@ export const createRoom = async (req, res, next) => {
 };
 
 
+export const createOrRetrieveRoom = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const currentUser = req.userId; // Assuming you have user information in the request
+    const roomName = req.body.roomName; // The room name from the request body
+
+    // Check if a room already exists between the users
+    const existingRoom = await Room.findOne({
+      members: { $all: [currentUser._id, userId] },
+    });
+
+    if (existingRoom) {
+      return res.status(200).json(existingRoom);
+    }
+
+    // Create a new room
+    const newRoom = new Room({
+      members: [currentUser._id, userId],
+      name: roomName, // Optional: You can add a room name if provided
+    });
+
+    const savedRoom = await newRoom.save();
+
+    return res.status(201).json(savedRoom);
+  } catch (error) {
+    console.error('Error creating or retrieving the room:', error);
+    res.status(500).json({ error: 'Error creating or retrieving the room' });
+  }
+};

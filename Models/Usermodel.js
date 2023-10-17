@@ -64,6 +64,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Default value is set to false
   },
+  online: {
+    type: Boolean,
+    default: false, // Default value is set to false
+  },
   Bio: {
     type: String,
   },

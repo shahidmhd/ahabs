@@ -24,7 +24,7 @@
 // export default router;
 
 
-import {addprofilepicture, checkFollowStatus, createRoom, currentuser, editprofile, followuser, getAllUsers, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
+import {addprofilepicture,checkFollowStatus, createOrRetrieveRoom, createRoom, currentuser, editprofile, followuser, getAllUsers, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import express from 'express';
 const router = express.Router();
@@ -47,7 +47,7 @@ router.get ('/listfollowing/:id',listFollowing)
 
 router.post('/create-room/:id',userAuthMid,createRoom);
 
-
+router.post('/chat/:id',createOrRetrieveRoom)
 
 
 

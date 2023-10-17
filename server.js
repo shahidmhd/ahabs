@@ -5,8 +5,8 @@ import dbConfig from './config/databasemongo.js'
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors'
-// import http from 'http'; // Import the http module for Socket.io
-// import { Server } from 'socket.io'; // Import the Server class from Socket.io
+import http from 'http'; // Import the http module for Socket.io
+import { Server } from 'socket.io'; // Import the Server class from Socket.io
 import Authrouter from './Routes/Authroutes.js';
 import userRouter from './Routes/userRoutes.js'
 import errorHandlingMiddleware from './middlewear/errorhandlingmiddlewear.js';
@@ -15,13 +15,13 @@ dotenv.config();
 
 // Create an Express application instance
 const app = express();
-// const server = http.createServer(app); // Create an HTTP server using your Express app
+const server = http.createServer(app); // Create an HTTP server using your Express app
 // Define the port to listen on, using the PORT environment variable
 const port = process.env.PORT || 3000; // Default to port 3000 if PORT is not defined in .env
 
 
 // Create a Socket.io server and attach it to the HTTP server
-// const io = new Server(server);
+const io = new Server(server);
 
 if(process.env.NODE_ENV==="development"){
   app.use(morgan('dev')); // Logging middleware
@@ -66,16 +66,16 @@ app.use((req, res, next) => {
 
 app.use(errorHandlingMiddleware)
 // Socket.io connection
-// io.on('connection', (socket) => {
-//   console.log('A user connected');
-// console.log(socket);
-//   // Handle your Socket.io events here
+io.on('connection', (socket) => {
+  console.log('A user connected');
+console.log(socket);
+  // Handle your Socket.io events here
 
-//   // Listen for disconnection
-//   socket.on('disconnect', () => {
-//     console.log('User disconnected');
-//   });
-// });
+  // Listen for disconnection
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
 
 // Start the server and log a message when it starts listening
 app.listen(port, () => {
