@@ -88,6 +88,6 @@ io.on('connection', (socket) => {
 
 
 // Start the server and log a message when it starts listening
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
