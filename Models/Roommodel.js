@@ -7,19 +7,21 @@ const roomSchema = new mongoose.Schema({
     ref: 'User', // Reference to the User model
     required: true,
   },
-  members: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Reference to the User model
-        required: true,
-      },
-      joinedAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
+  members: [{ type:mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+  // members: [
+  //   {
+  //     user: {
+  //       type: mongoose.Schema.Types.ObjectId,
+  //       ref: 'User', // Reference to the User model
+  //       required: true,
+  //     },
+  //     joinedAt: {
+  //       type: Date,
+  //       default: Date.now,
+  //     },
+  //   },
+  // ],
   name: {
     type: String,
     unique: true,
