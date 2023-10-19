@@ -16,6 +16,23 @@ export const getAllUsers = async (req, res, next) => {
   }
 };
 
+export const getAllUsersnotcurrentuser = async (req, res, next) => {
+  const userId = req.userId; // Assuming you have the current user's ID
+
+  try {
+    // Fetch all users from the database excluding the current user
+    const users = await User.find({ _id: { $ne: userId } });
+
+    // Return the users as a JSON response
+    res.status(200).json({ status: 'true', count: users.length, data: users });
+  } catch (error) {
+    console.log(error);
+    // Handle any errors that occur during the database query
+    next(error);
+  }
+};
+
+
 export const editprofile = async (req, res,next) => {
   try {
     const userId = req.params.id; // Assuming you have middleware that adds the user object to the request

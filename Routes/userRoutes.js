@@ -24,7 +24,7 @@
 // export default router;
 
 
-import {addprofilepicture,checkFollowStatus, createOrRetrieveRoom, createRoom, currentuser, editprofile, followuser, getAllUsers, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
+import {addprofilepicture,checkFollowStatus, createOrRetrieveRoom, createRoom, currentuser, editprofile, followuser, getAllUsers, getAllUsersnotcurrentuser, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import express from 'express';
 const router = express.Router();
@@ -35,6 +35,7 @@ import upload from '../config/multerconfig.js'
 
 
 router.get('/getallusers', userAuthMid, getAllUsers);
+router.get('/getusernotcurrenutuser', userAuthMid, getAllUsersnotcurrentuser);
 router.post('/editprofile/:id', userAuthMid, editprofile);
 router.get('/currentuser/:id', userAuthMid, currentuser);
 router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'),addprofilepicture);

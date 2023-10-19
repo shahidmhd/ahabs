@@ -5,10 +5,12 @@ import dbConfig from './config/databasemongo.js'
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors'
+import initializeSocketIO  from './config/Socket.js'
 import http from 'http'; // Import the http module for Socket.io
 import { Server } from 'socket.io'; // Import the Server class from Socket.io
 import Authrouter from './Routes/Authroutes.js';
 import userRouter from './Routes/userRoutes.js'
+import ChatRouter from './Routes/Rommroutes.js'
 import errorHandlingMiddleware from './middlewear/errorhandlingmiddlewear.js';
 // Load environment variables from a .env file
 dotenv.config();
@@ -27,6 +29,10 @@ const io = new Server(server, {
     origin: '*', // Replace with your frontend app's URL
   }
 });
+initializeSocketIO(io);
+
+
+
 
 if(process.env.NODE_ENV==="development"){
   app.use(morgan('dev')); // Logging middleware
@@ -47,6 +53,8 @@ dbConfig(); // Call the connectDB function
 // Define a route that responds with "Hello World!" for the root URL
 app.use('/api/auth',Authrouter)
 app.use('/api/user',userRouter)
+app.use('/api/chat',ChatRouter)
+
 
 
 
@@ -61,30 +69,26 @@ app.use((req, res, next) => {
 app.use(errorHandlingMiddleware)
 // Socket.io connection
 // Store online users
-const onlineUsers = new Set();
+// const onlineUsers = new Set();
 
-io.on('connection', (socket) => {
-  console.log("socket connected");
-  console.log(`User connected with socket.id: ${socket.id}`);
-  onlineUsers.add(socket.id);
+// io.on('connection', (socket) => {
+//   console.log('User connected with socket.id:', socket.id);
+//   onlineUsers.add(socket.id);
 
-  // Notify everyone when a user joins
-  socket.broadcast.emit('user-joined', socket.id);
+//   socket.broadcast.emit('user-joined', socket.id);
 
-  // Listen for chat messages
-  socket.on('chat-message', (message) => {
-    // Broadcast the message to all connected users
-    io.emit('chat-message', { id: socket.id, message });
-  });
+//   socket.on('chat-message', (message) => {
+//     console.log(message,"gggg");
+//     io.emit('chat-message', { id: socket.id, message });
+//   });
 
-  // Listen for disconnection
-  socket.on('disconnect', () => {
-    console.log(`User disconnected with socket.id: ${socket.id}`);
-    onlineUsers.delete(socket.id);
-    // Notify everyone when a user leaves
-    socket.broadcast.emit('user-left', socket.id);
-  });
-});
+//   socket.on('disconnect', () => {
+//     console.log('User disconnected with socket.id:', socket.id);
+//     onlineUsers.delete(socket.id);
+//     socket.broadcast.emit('user-left', socket.id);
+//   });
+// });
+
 
 
 // Start the server and log a message when it starts listening
