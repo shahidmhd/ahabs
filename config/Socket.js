@@ -1,33 +1,5 @@
-import ChatMessage  from "../Models/chatmodel.js";
+import ChatMessage  from "../Models/Chatsamplemodel.js";
 
-// const onlineUsers = new Set();
-
-// const initializeSocketIO = (io) => {
-//   io.on('connection', (socket) => {
-//     console.log('User connected with socket.id:', socket.id);
-//     onlineUsers.add(socket.id);
-
-//     socket.broadcast.emit('user-joined', socket.id);
-//     console.log(onlineUsers);
-
-
-
-
-//     socket.on('chat-message', (message) => {
-//       console.log(message, 'gggg');
-
-//       io.emit('chat-message', { id: socket.id, message});
-//       // io.emit('chat-message', message);
-//     });
-//     socket.on('disconnect', () => {
-//       console.log('User disconnected with socket.id:', socket.id);
-//       onlineUsers.delete(socket.id);
-//       socket.broadcast.emit('user-left', socket.id);
-//     });
-//   });
-// };
-
-// export default initializeSocketIO;
 const onlineUsers = new Set();
 
 const initializeSocketIO = (io) => {

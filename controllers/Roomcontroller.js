@@ -1,6 +1,7 @@
 import Room from "../Models/Roommodel.js";
-import Chat from "../Models/chatmodel.js";
+import Chat from "../Models/Chatsamplemodel.js";
 import User from "../Models/Usermodel.js"
+
 
 
 export const createuseroom = async (req, res, next) => {
