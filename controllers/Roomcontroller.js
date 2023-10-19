@@ -52,7 +52,7 @@ export const createuseroom = async (req, res, next) => {
         return res.status(404).json({ message: 'Messages not found' });
       }
   
-      return res.status(200).json(messages);
+      return res.status(200).json({status:"true",data:messages});
     } catch (error) {
       console.error('Error fetching messages:', error);
       return res.status(500).json({ message: 'Internal server error' });
@@ -106,7 +106,7 @@ export const createuseroom = async (req, res, next) => {
         }
       }
   
-      res.status(200).json({ success: true, data: chattedUserDetails });
+      res.status(200).json({ status:"true", data: chattedUserDetails });
     } catch (error) {
       console.error('Error fetching chatted users:', error);
       next(error);
