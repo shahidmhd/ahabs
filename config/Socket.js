@@ -1,5 +1,5 @@
-// import ChatMessage  from "../Models/chatmodel.js";
-import Chat from "../Models/chatmodel.js";
+import ChatMessage  from "../Models/chatmodel.js";
+
 // const onlineUsers = new Set();
 
 // const initializeSocketIO = (io) => {
@@ -42,7 +42,7 @@ const initializeSocketIO = (io) => {
       console.log(message, 'Received chat message from client');
 
       // Assuming you have a ChatMessage model
-      const chatMessage = new Chat({
+      const chatMessage = new ChatMessage({
         senderId: message.userId,
         message: message.message,
         roomId: message.roomid,
