@@ -1,4 +1,4 @@
-// import ChatMessage  from "../Models/chatmodel.js";
+import ChatMessage  from "../Models/chatmodel.js";
 
 // const onlineUsers = new Set();
 
@@ -42,15 +42,15 @@ const initializeSocketIO = (io) => {
       console.log(message, 'Received chat message from client');
 
       // Assuming you have a ChatMessage model
-      // const chatMessage = new ChatMessage({
-      //   senderId: message.userId,
-      //   message: message.message,
-      //   roomId: message.roomid,
-      // });
+      const chatMessage = new ChatMessage({
+        senderId: message.userId,
+        message: message.message,
+        roomId: message.roomid,
+      });
 
       try {
-        // const savedMessage = await chatMessage.save();
-        // console.log('Message saved to the database:', savedMessage);
+        const savedMessage = await chatMessage.save();
+        console.log('Message saved to the database:', savedMessage);
 
         // Emit the saved message back to the sender
         // socket.emit('chat-message', {
