@@ -59,6 +59,29 @@ export const createuseroom = async (req, res, next) => {
     }
   }
 
+//   export const getMessages = async (req, res) => {
+//   try {
+//     const roomid = req.params.id; // Get the room ID from the request parameters
+//     const { offset, limit } = req.query;
+
+//     // Find chat messages where roomId matches the specified roomid with pagination
+//     const messages = await Chat.find({ roomId: roomid })
+//       .sort({ timestamp: -1 }) // Sort by timestamp in descending order
+//       .skip(parseInt(offset, 10)) // Offset: Number of messages to skip
+//       .limit(parseInt(limit, 10)) // Limit: Number of messages to retrieve
+//       .exec();
+
+//     if (!messages) {
+//       return res.status(404).json({ status: false, message: 'Messages not found' });
+//     }
+
+//     return res.status(200).json({ status: true, data: messages });
+//   } catch (error) {
+//     console.error('Error fetching messages:', error);
+//     return res.status(500).json({ status: false, message: 'Internal server error' });
+//   }
+// };
+
 
 
 
