@@ -67,27 +67,25 @@ app.use((req, res, next) => {
 });
 
 app.use(errorHandlingMiddleware)
-// Socket.io connection
-// Store online users
-// const onlineUsers = new Set();
 
-// io.on('connection', (socket) => {
-//   console.log('User connected with socket.id:', socket.id);
-//   onlineUsers.add(socket.id);
 
-//   socket.broadcast.emit('user-joined', socket.id);
 
-//   socket.on('chat-message', (message) => {
-//     console.log(message,"gggg");
-//     io.emit('chat-message', { id: socket.id, message });
-//   });
+// Graceful Shutdown
+const handleExit = () => {
+  console.log('Server is shutting down...');
+  server.close(() => {
+    console.log('Server has gracefully stopped.');
+    process.exit(0);
+  });
+};
 
-//   socket.on('disconnect', () => {
-//     console.log('User disconnected with socket.id:', socket.id);
-//     onlineUsers.delete(socket.id);
-//     socket.broadcast.emit('user-left', socket.id);
-//   });
-// });
+process.on('SIGINT', handleExit); // Handle Ctrl + C
+process.on('SIGTERM', handleExit); // Handle termination signal
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Promise Rejection:', err);
+  handleExit();
+});
+
 
 
 

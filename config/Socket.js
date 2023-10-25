@@ -1,13 +1,35 @@
 import ChatMessage  from "../Models/Chatsamplemodel.js";
-const onlineUsers = new Set();
+let onlineUsers = [];
+
 
 const initializeSocketIO = (io) => {
   io.on('connection',async (socket) => {
     console.log('User connected with socket.id:', socket.id);
-    onlineUsers.add(socket.id);
+    // onlineUsers.add(socket.id);
   
     socket.broadcast.emit('user-joined', socket.id);
-    console.log(onlineUsers);
+
+
+
+    // Handle 'new-user-add' event to add a new user
+    socket.on('new-user-add', (userId) => {
+      onlineUsers.push({ socketId: socket.id, userId });
+      console.log(onlineUsers);
+      io.emit('get-users', onlineUsers);
+    });
+
+  //    //add new user
+  //    socket.on('new-user-add',(userId)=>{
+  //     console.log(userId,"sssssssssssssssssssssssssssss");
+  //     // if(!activeUsers.some((user)=>user?.userId ===userId)){
+  //     //     activeUsers.push({
+  //     //         userId:userId,
+  //     //         socketId:socket.id
+  //     //     })
+  //     // }
+  //     // io.emit('get-users',activeUsers)
+  // })
+
 
     socket.on('chat-message', async (message) => {
       console.log(message, 'Received chat message from client');
@@ -40,11 +62,21 @@ const initializeSocketIO = (io) => {
       }
     });
 
-    socket.on('disconnect', () => {
-      console.log('User disconnected with socket.id:', socket.id);
-      onlineUsers.delete(socket.id);
-      socket.broadcast.emit('user-left', socket.id);
-    });
+    // socket.on('disconnect', () => {
+    //   console.log('User disconnected with socket.id:', socket.id);
+    //   onlineUsers.delete(socket.id);
+    //   socket.broadcast.emit('user-left', socket.id);
+    // });
+
+      // Handle 'disconnect' event to remove the user on disconnect
+      // Handle 'disconnect' event to remove the user on disconnect
+      socket.on('disconnect', () => {
+        console.log('User disconnected with socket.id:', socket.id);
+  
+        onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
+  console.log(onlineUsers);
+        io.emit('get-users', onlineUsers);
+      });
   });
 };
 

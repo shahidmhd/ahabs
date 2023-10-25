@@ -10,10 +10,10 @@ import cron from 'node-cron'
 
 // Create a Nodemailer transporter using your email service provider's credentials
 const transporter = nodemailer.createTransport({
-  service: 'Gmail', // e.g., 'Gmail', 'Yahoo', etc.
+  service: 'gmail', // e.g., 'Gmail', 'Yahoo', etc.
   auth: {
-    user: 'afsal4771@gmail.com',
-    pass: 'svbo fxkj gzip obqd',
+    user: 'cyenosure@gmail.com',
+    pass: 'fkne qrzm shts ytzn',
 
   },
 });
@@ -176,7 +176,7 @@ export const emailverification = async (req, res, next) => {
 
     // Send the email with the verification code
     const mailOptions = {
-      from: 'afsal4771@gmail.com',
+      from: 'cyenosure@gmail.com',
       to: email,
       subject: 'Email Verification Code',
       text: emailMessage,
