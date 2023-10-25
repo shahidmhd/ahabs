@@ -13,9 +13,12 @@ const initializeSocketIO = (io) => {
 
     // Handle 'new-user-add' event to add a new user
     socket.on('new-user-add', (userId) => {
-      onlineUsers.push({ socketId: socket.id, userId });
-      console.log(onlineUsers);
-      io.emit('get-users', onlineUsers);
+      const isUserOnline = onlineUsers.some((user) => user.userId === userId);
+      if (!isUserOnline) {
+        onlineUsers.push({ socketId: socket.id, userId });
+        console.log(onlineUsers);
+        io.emit('get-users', onlineUsers);
+      }
     });
 
   //    //add new user
