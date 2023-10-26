@@ -217,6 +217,7 @@ console.log(currentUserId);
 };
 export const checkFollowStatus = async (req, res, next) => {
   const currentUserId = req.userId; // Get the current user ID from req.body
+  console.log(currentUserId,"ttttt");
   const userIdToCheck = req.params.id; // Get the user's ID to check from route parameters
 
   try {

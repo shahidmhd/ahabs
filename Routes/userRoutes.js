@@ -42,9 +42,9 @@ router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture
 router.post('/follow/:id', userAuthMid,followuser);
 router.post('/unfollow/:id', userAuthMid,unfollowUser);
 // Set up the GET route to check follow status
-router.post('/checkFollowStatus/:id',checkFollowStatus);
-router.get ('/listfollowers/:id',listFollowers)
-router.get ('/listfollowing/:id',listFollowing)
+router.post('/checkFollowStatus/:id',userAuthMid,checkFollowStatus);
+router.get ('/listfollowers/:id',userAuthMid,listFollowers)
+router.get ('/listfollowing/:id',userAuthMid,listFollowing)
 
 router.post('/create-room/:id',userAuthMid,createRoom);
 
