@@ -2,6 +2,7 @@ import User from '../Models/Usermodel.js'; // Import your User model (adjust the
 import { AWS, s3 } from '../config/Awss3.js'
 import AppError from '../utils/AppError.js';
 import Room from '../Models/Roommodel.js';
+import Notification from '../Models/Notificationmodel.js';
 export const getAllUsers = async (req, res, next) => {
   try {
     // Fetch all users from the database
@@ -174,7 +175,14 @@ export const followuser = async (req, res, next) => {
 
     // Save both user documents
     await Promise.all([currentUser.save(), friendToFollow.save()]);
+ // Create a notification for the friend who was followed
+ const notification = new Notification({
+  receiver: friendId,
+  user: currentUserId,
+  content:" started to followed you.",
+});
 
+await notification.save();
     res.status(200).json({status:'true', message: 'You are now following this friend' });
   } catch (error) {
     console.error(error);
@@ -209,6 +217,13 @@ console.log(currentUserId);
     // Save both user documents
     await Promise.all([currentUser.save(), friendToUnfollow.save()]);
 
+         // Delete the notification associated with this unfollow action
+    await Notification.findOneAndDelete({
+      receiver: friendId,
+      user: currentUserId,
+      content:" started to followed you.",
+    });
+
     res.status(200).json({status:'true', message: 'You have unfollowed this friend' });
   } catch (error) {
     console.error(error);
@@ -217,7 +232,6 @@ console.log(currentUserId);
 };
 export const checkFollowStatus = async (req, res, next) => {
   const currentUserId = req.userId; // Get the current user ID from req.body
-  console.log(currentUserId,"ttttt");
   const userIdToCheck = req.params.id; // Get the user's ID to check from route parameters
 
   try {

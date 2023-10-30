@@ -11,6 +11,7 @@ import { Server } from 'socket.io'; // Import the Server class from Socket.io
 import Authrouter from './Routes/Authroutes.js';
 import userRouter from './Routes/userRoutes.js'
 import ChatRouter from './Routes/Rommroutes.js'
+import NotificationRouter from './Routes/NotificationRoutes.js'
 import errorHandlingMiddleware from './middlewear/errorhandlingmiddlewear.js';
 // Load environment variables from a .env file
 dotenv.config();
@@ -54,7 +55,7 @@ dbConfig(); // Call the connectDB function
 app.use('/api/auth',Authrouter)
 app.use('/api/user',userRouter)
 app.use('/api/chat',ChatRouter)
-
+app.use('/api/notification',NotificationRouter)
 
 
 

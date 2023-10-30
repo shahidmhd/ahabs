@@ -136,3 +136,21 @@ export const createuseroom = async (req, res, next) => {
     }
   };
   
+
+  export const deleteMessage = async (req, res) => {
+    try {
+      const messageId = req.params.id;
+      // Use Mongoose to find and delete the message by its _id
+      
+      const deletedMessage = await Chat.findByIdAndRemove(messageId);
+  
+      if (!deletedMessage) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+  
+      res.status(200).json({ message: 'Message deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting the message:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };

@@ -21,22 +21,9 @@ const initializeSocketIO = (io) => {
       }
     });
 
-  //    //add new user
-  //    socket.on('new-user-add',(userId)=>{
-  //     console.log(userId,"sssssssssssssssssssssssssssss");
-  //     // if(!activeUsers.some((user)=>user?.userId ===userId)){
-  //     //     activeUsers.push({
-  //     //         userId:userId,
-  //     //         socketId:socket.id
-  //     //     })
-  //     // }
-  //     // io.emit('get-users',activeUsers)
-  // })
-
-
     socket.on('chat-message', async (message) => {
       console.log(message, 'Received chat message from client');
-    
+      const { to } = message;
       // Assuming you have a ChatMessage model
       const chatMessage = new ChatMessage({
         senderId: message.userId,
@@ -48,15 +35,11 @@ const initializeSocketIO = (io) => {
         const savedMessage = await chatMessage.save();
         console.log('Message saved to the database:', savedMessage);
 
-        // Emit the saved message back to the sender
-        // socket.emit('chat-message', {
-        //   message: savedMessage.message,
-        //   userId: savedMessage.senderId.toString(), // Convert senderId to a string
-        //   timestamp: savedMessage.timestamp,
-        // });
-
-       socket.broadcast.emit('chat-message',savedMessage);
-
+      //  socket.broadcast.emit('chat-message',savedMessage);
+       const user = onlineUsers.find((user) => user.userId === to);
+       if (user) {
+         io.to(user.socketId).emit("chat-message", savedMessage);
+       }
         // Broadcast the message to other users in the room
 
         // io.to(message.roomid).emit('chat-message',savedMessage);
@@ -65,19 +48,16 @@ const initializeSocketIO = (io) => {
       }
     });
 
-    // socket.on('disconnect', () => {
-    //   console.log('User disconnected with socket.id:', socket.id);
-    //   onlineUsers.delete(socket.id);
-    //   socket.broadcast.emit('user-left', socket.id);
-    // });
+       
 
-      // Handle 'disconnect' event to remove the user on disconnect
+
+
       // Handle 'disconnect' event to remove the user on disconnect
       socket.on('disconnect', () => {
         console.log('User disconnected with socket.id:', socket.id);
   
         onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
-  console.log(onlineUsers);
+         console.log(onlineUsers);
         io.emit('get-users', onlineUsers);
       });
   });
