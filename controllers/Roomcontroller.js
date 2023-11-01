@@ -1,7 +1,7 @@
 import Room from "../Models/Roommodel.js";
 import Chat from "../Models/Chatsamplemodel.js";
 import User from "../Models/Usermodel.js"
-
+import AppError from "../utils/AppError.js";
 
 
 export const createuseroom = async (req, res, next) => {
@@ -46,7 +46,7 @@ export const createuseroom = async (req, res, next) => {
       const roomid = req.params.id; // Get the room ID from the request parameters
   // console.log(roomid,"yttttttttttttttttttttt");
       // Find all messages where roomId matches the specified roomid
-      const messages = await Chat.find({ roomId: roomid });
+      const messages = await Chat.find({ roomId: roomid }).populate('replyId','message');
   
       if (!messages) {
         return res.status(404).json({ message: 'Messages not found' });
@@ -154,3 +154,141 @@ export const createuseroom = async (req, res, next) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+
+
+  export const addmessage=async(req,res,next)=>{
+    try {
+      // Extract data from the request body (assuming it's in JSON format)
+      const { senderId, message, roomId, replyId } = req.body;
+      // Create a new Chat document using the Chat model
+      const chatMessage = new Chat({
+        senderId, // Convert senderId to ObjectId
+        message,
+        roomId, // Convert roomId to ObjectId
+        replyId: replyId ? replyId : null, // Convert replyId to ObjectId or set to null if not provided
+      });
+      // Save the chat message to the database
+      await chatMessage.save();
+      if (replyId) {
+           await chatMessage.populate('replyId','message');
+        //    chatMessage.replyId = {
+        //        message: chatMessage.replyId.message,
+        //       //  replyId:chatMessage.replyId._id
+        //  }
+        }
+      res.status(201).json({ status: 'true', chatMessage });
+    } catch (error) {
+      console.error(error);
+     next(error)
+    }
+  
+  }
+
+
+
+  export const messagedeleteforme=async(req,res,next)=>{
+    const userId=req.userId
+    const messageId = req.params.id
+    
+  
+    try {
+      // Check if the message with messageId exists
+      const message = await Chat.findById(messageId);
+  
+      if (!message) {
+        throw new AppError("Message not found", 404);
+      }
+
+      
+    // Check if userId is already in the deleteduser array
+    if (message.deleteduser.includes(userId)) {
+      return res.status(200).json({ status: "fail", message: 'Message already deleted' });
+    }
+  
+      // Update the Chat document to push the messageId to the deleteduser array
+      await Chat.findByIdAndUpdate(
+        messageId,
+        { $push: { deleteduser: userId } },
+        { new: true } // Ensure you get the updated document as a result
+      );
+
+      res.status(200).json({status:"true", message: 'Message deleted successfully' });
+    } catch (error) {
+      console.error(error);
+     next(error)
+    }
+  }
+
+
+  export const deleteforeveryone = async (req, res,next) => {
+    const userId=req.userId
+    const messageId = req.params.id
+    try {
+      // Check if the message with messageId exists
+      const message = await Chat.findById(messageId);
+      if (!message) {
+        throw new AppError("Message not found", 404);
+      }
+  
+      // Check if the user trying to delete the message is the sender
+      if (message.senderId.toString() !== userId) {
+        throw new AppError("You are not authorized to delete this message", 403);
+      }
+  
+      // Delete the message for everyone in the room
+      await Chat.deleteOne({ _id: messageId });
+  
+      res.status(200).json({ status: "true", message: 'Message deleted for everyone' });
+    } catch (error) {
+      console.error(error);
+      next(error)
+    }
+  };
+
+
+
+
+  export const chattedrooms = async (req, res,next) => {
+    try {
+      // Query the Room model to get a list of chat rooms
+      const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate('latestmessage');;
+      
+      res.status(200).json({status:"true",data:chatRooms });
+    } catch (error) {
+      console.error(error);
+    next(error)
+    }
+  };
+
+
+
+  export const clearchat=async(req,res,next)=>{
+    const userId=req.userId
+    const roomId=req.params.id
+    try {
+      // Find the chat messages for the specified room and user
+      const messages = await Chat.find({ roomId });
+      if (messages.length === 0) {
+        // If there are no matching messages, return a response or an error
+        throw new AppError("No messages found to clear",200)
+      }
+  
+       // Update the `deleteduser` array for each message in the room
+    messages.forEach(async (message) => {
+      // Check if userId is not already in the `deleteduser` array
+      if (!message.deleteduser.includes(userId)) {
+        message.deleteduser.push(userId);
+        await message.save();
+      }
+    });
+  
+      return res.status(200).json({status:"true", message: 'Chat cleared successfully' });
+    } catch (error) {
+      // Handle errors appropriately
+      console.error('Error clearing chat:', error);
+      next(error)
+    }
+  }
+
+

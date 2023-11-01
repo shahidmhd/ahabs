@@ -1,4 +1,5 @@
-import ChatMessage  from "../Models/Chatsamplemodel.js";
+// import User from "../Models/Usermodel.js";
+import Room from "../Models/Roommodel.js";
 let onlineUsers = [];
 
 
@@ -6,7 +7,9 @@ const initializeSocketIO = (io) => {
   io.on('connection',async (socket) => {
     console.log('User connected with socket.id:', socket.id);
     // onlineUsers.add(socket.id);
-  
+    // const userId=socket.handshake.query.userId
+    // await User.findByIdAndUpdate({_id:userId},{$set:{online:true}})
+  // console.log(userId,"uuuuu");
     socket.broadcast.emit('user-joined', socket.id);
 
 
@@ -21,44 +24,97 @@ const initializeSocketIO = (io) => {
       }
     });
 
+
+    socket.on('send-notification', (notification) => {
+      const {receiver} = notification;
+            const user = activeUsers.find((user) => user.userId === receiver);
+            if(user){
+                io.to(user.socketId).emit('receive-notification',notification)
+            }
+      // Here, you can process the notification data and decide to whom and how to send it
+      // For example, you might want to send it to specific users or to all connected clients
+      // io.emit('receive-notification', notification); // Broadcast the notification to all connected clients
+    });
+  
+    // socket.on('chat-message', async (message) => {
+    //   console.log(message, 'Received chat message from client');
+    //   const { to } = message;
+    //   // Assuming you have a ChatMessage model
+    //   const chatMessage = new ChatMessage({
+    //     senderId: message.userId,
+    //     message: message.message,
+    //     roomId: message.roomid,
+    //     ...(message.replyId && { replyId: message.replyId }),
+    //   });
+
+    //   try {
+
+    //     console.log(chatMessage,"uuuuuurrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
+    //     const savedMessage = await chatMessage.save();
+    //     console.log('Message saved to the database:', savedMessage);
+    //     if (message.replyId) {
+    //       await savedMessage.populate('replyId', 'message');
+    //       savedMessage.replyId = {
+    //         replyId: savedMessage.replyId._id,
+    //         message: savedMessage.replyId.message,
+    //       };
+    //       console.log(savedMessage, "ttttttttttttttttttttttttttttttttttttttttttttttttttttt");
+    //     }
+      
+    //   //  socket.broadcast.emit('chat-message',savedMessage);
+    //    const user = onlineUsers.find((user) => user.userId === to);
+    //    if (user) {
+    //      io.to(user.socketId).emit("chat-message", savedMessage);
+    //    }
+    //     // Broadcast the message to other users in the room
+
+    //     // io.to(message.roomid).emit('chat-message',savedMessage);
+    //   } catch (error) {
+    //     console.error('Error saving message to the database:', error);
+    //   }
+    // });
+
+
+    // -----------------------------------//
     socket.on('chat-message', async (message) => {
+      const { to, roomId, _id  } = message;
       console.log(message, 'Received chat message from client');
-      const { to } = message;
-      // Assuming you have a ChatMessage model
-      const chatMessage = new ChatMessage({
-        senderId: message.userId,
-        message: message.message,
-        roomId: message.roomid,
-      });
+    
 
-      try {
-        const savedMessage = await chatMessage.save();
-        console.log('Message saved to the database:', savedMessage);
-
-      //  socket.broadcast.emit('chat-message',savedMessage);
-       const user = onlineUsers.find((user) => user.userId === to);
-       if (user) {
-         io.to(user.socketId).emit("chat-message", savedMessage);
-       }
-        // Broadcast the message to other users in the room
-
-        // io.to(message.roomid).emit('chat-message',savedMessage);
+       try {
+        // Find the corresponding Room document by roomId
+        const room = await Room.findOne({ _id: roomId });
+    console.log(room,"iiiiiiiiiiiii");
+        if (room) {
+          // Compare the _id of the new message with the current latestmessage
+          // If the new message is more recent, update the 'latestmessage' field
+          
+            room.latestmessage = _id;
+            await room.save(); // Save the updated Room document
+      
+        }
       } catch (error) {
-        console.error('Error saving message to the database:', error);
+        console.error('Error updating the latestmessage field:', error);
       }
+      const user = onlineUsers.find((user) => user.userId === to);
+       if (user) {
+         io.to(user.socketId).emit("chat-message", message);
+       }
     });
 
+    // -----------------------------------//
        
 
 
 
       // Handle 'disconnect' event to remove the user on disconnect
-      socket.on('disconnect', () => {
+      socket.on('disconnect',async () => {
         console.log('User disconnected with socket.id:', socket.id);
-  
+        
         onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
          console.log(onlineUsers);
         io.emit('get-users', onlineUsers);
+        // await User.findByIdAndUpdate({_id:userId},{$set:{online:false}})
       });
   });
 };

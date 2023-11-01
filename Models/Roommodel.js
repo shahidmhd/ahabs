@@ -8,20 +8,7 @@ const roomSchema = new mongoose.Schema({
     required: true,
   },
   members: [{ type:mongoose.Schema.Types.ObjectId, ref: "User" }],
-
-  // members: [
-  //   {
-  //     user: {
-  //       type: mongoose.Schema.Types.ObjectId,
-  //       ref: 'User', // Reference to the User model
-  //       required: true,
-  //     },
-  //     joinedAt: {
-  //       type: Date,
-  //       default: Date.now,
-  //     },
-  //   },
-  // ],
+  latestmessage:{ type:mongoose.Schema.Types.ObjectId, ref: "Chat" },
   name: {
     type: String,
     unique: true,

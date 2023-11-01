@@ -176,14 +176,15 @@ export const followuser = async (req, res, next) => {
     // Save both user documents
     await Promise.all([currentUser.save(), friendToFollow.save()]);
  // Create a notification for the friend who was followed
- const notification = new Notification({
-  receiver: friendId,
-  user: currentUserId,
-  content:" started to followed you.",
-});
+     const notification = new Notification({
+      receiver: friendId,
+      user: currentUserId,
+      content:" started to following you.",
+    });
 
-await notification.save();
-    res.status(200).json({status:'true', message: 'You are now following this friend' });
+  const data=  await notification.save();
+  await data.populate('user','username')
+    res.status(200).json({status:'true', message: 'You are now following this friend',notification:data });
   } catch (error) {
     console.error(error);
    next(error)

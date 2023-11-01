@@ -4,6 +4,12 @@ const chatSchema = new mongoose.Schema({
   senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   message: String,
   roomId: { type: mongoose.Schema.Types.ObjectId, ref: 'Room' },
+  replyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Chat', // Assuming you have a 'Chat' model for the referenced message
+    default: null, // Default to null if not provided
+  },
+  deleteduser:[]
  }, // Assuming you have a Room model
   // roomId:String,
   {
