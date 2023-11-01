@@ -252,8 +252,27 @@ export const createuseroom = async (req, res, next) => {
   export const chattedrooms = async (req, res,next) => {
     try {
       // Query the Room model to get a list of chat rooms
-      const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate('latestmessage');;
+      // const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate('latestmessage');
+      const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate([
+        {
+          path: 'members',
+          model: 'User',
+          select: 'username profilepicture',
+        },
+        {
+          path: 'latestmessage',
+          model: 'Chat',
+     
+        },
+      ]);
       
+      chatRooms.forEach((room) => {
+        if (room.members.length > 0) {
+          room.members.pop(); // Remove the last element from the members array
+        }
+      });
+
+
       res.status(200).json({status:"true",data:chatRooms });
     } catch (error) {
       console.error(error);
