@@ -19,7 +19,7 @@ export const createuseroom = async (req, res, next) => {
 
     if (existingRoom) {
       // If a room with the same members exists, return the existing room
-      return res.status(200).json(existingRoom);
+      return res.status(200).json({status:"true",data:existingRoom});
     }
 
     const newRoomName = `Room_${Date.now()}`;
@@ -33,7 +33,7 @@ export const createuseroom = async (req, res, next) => {
 
     const room = await newRoom.save();
 
-    res.status(201).json(room);
+    res.status(200).json({status:"true",data:room});
   } catch (err) {
     console.error('Error creating or checking the room:', err);
     next(err);
@@ -251,9 +251,13 @@ export const createuseroom = async (req, res, next) => {
 
   export const chattedrooms = async (req, res,next) => {
     try {
+      const currentUserId=req.userId
       // Query the Room model to get a list of chat rooms
       // const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate('latestmessage');
-      const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate([
+      const chatRooms = await Room.find({
+        latestmessage: { $ne: null },
+        members: currentUserId,
+      }).populate([
         {
           path: 'members',
           model: 'User',
@@ -266,12 +270,16 @@ export const createuseroom = async (req, res, next) => {
         },
       ]);
       
+      // chatRooms.forEach((room) => {
+      //   if (room.members.length > 0) {
+      //     room.members.pop(); // Remove the last element from the members array
+      //   }
+      // });
       chatRooms.forEach((room) => {
         if (room.members.length > 0) {
-          room.members.pop(); // Remove the last element from the members array
+          room.members = room.members.filter((member) => member._id.toString() !== currentUserId);
         }
       });
-
 
       res.status(200).json({status:"true",data:chatRooms });
     } catch (error) {
