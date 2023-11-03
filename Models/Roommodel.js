@@ -16,6 +16,9 @@ const roomSchema = new mongoose.Schema({
   description: {
     type: String, // This field is optional
   },
+  messageCount:{
+    type:Number,
+  }
 }, {
   timestamps: true,
 });

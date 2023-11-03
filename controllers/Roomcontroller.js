@@ -275,23 +275,23 @@ export const createuseroom = async (req, res, next) => {
      
         },
       ]);
-      
+
       // chatRooms.forEach((room) => {
       //   if (room.members.length > 0) {
-      //     room.members.pop(); // Remove the last element from the members array
+      //     room.members = room.members.filter((member) => member._id.toString() !== currentUserId);
       //   }
       // });
-      chatRooms.forEach((room) => {
+
+      for (const room of chatRooms) {
         if (room.members.length > 0) {
           room.members = room.members.filter((member) => member._id.toString() !== currentUserId);
+  
+          const chatcount = await Chat.countDocuments({ roomId: room._id });
+          room.messageCount = chatcount;
+        } else {
+          room.messageCount = 0;
         }
-      });
-
-
-    
-   // Create an array of objects with roomId and chat length
-
-console.log(chatRooms,"ppppppppppppppppppppppppppppp");
+      }
       res.status(200).json({status:"true",data:chatRooms });
     } catch (error) {
       console.error(error);
