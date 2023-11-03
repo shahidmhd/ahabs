@@ -222,9 +222,9 @@ console.log(currentUserId);
     await Notification.findOneAndDelete({
       receiver: friendId,
       user: currentUserId,
-      content:" started to followed you.",
+      content:" started to following you.",
     });
-    await Notification.save();
+
     res.status(200).json({status:'true', message: 'You have unfollowed this friend' });
   } catch (error) {
     console.error(error);
