@@ -224,7 +224,7 @@ console.log(currentUserId);
       user: currentUserId,
       content:" started to followed you.",
     });
-
+    await Notification.save();
     res.status(200).json({status:'true', message: 'You have unfollowed this friend' });
   } catch (error) {
     console.error(error);

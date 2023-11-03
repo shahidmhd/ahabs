@@ -177,6 +177,12 @@ export const createuseroom = async (req, res, next) => {
         //       //  replyId:chatMessage.replyId._id
         //  }
         }
+        const room = await Room.findOne({ _id: roomId });
+        if (room) { 
+         room.latestmessage =chatMessage. _id;
+            await room.save(); // Save the updated Room document
+      
+        }
       res.status(201).json({ status: 'true', chatMessage });
     } catch (error) {
       console.error(error);
@@ -281,6 +287,11 @@ export const createuseroom = async (req, res, next) => {
         }
       });
 
+
+    
+   // Create an array of objects with roomId and chat length
+
+console.log(chatRooms,"ppppppppppppppppppppppppppppp");
       res.status(200).json({status:"true",data:chatRooms });
     } catch (error) {
       console.error(error);
