@@ -46,7 +46,7 @@ const initializeSocketIO = (io) => {
 
 
     socket.on('delete-for-everyone', (data) => {
-      const {receiverId} = notification;
+      const {receiverId} = data;
             const user = activeUsers.find((user) => user.userId === receiverId);
             if(user){
                 io.to(user.socketId).emit('delete-for-everyone',data)
