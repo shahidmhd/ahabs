@@ -46,6 +46,7 @@ const initializeSocketIO = (io) => {
 
 
     socket.on('delete-for-everyone', (data) => {
+      console.log(data,"data");
       const {receiverId} = data;
             const user = activeUsers.find((user) => user.userId === receiverId);
             if(user){
