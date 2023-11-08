@@ -27,7 +27,7 @@ const initializeSocketIO = (io) => {
     socket.on('send-notification', (notification) => {
       console.log(notification,"notification");
       const {receiver} = notification;
-            const user = activeUsers.find((user) => user.userId === receiver);
+            const user = onlineUsers.find((user) => user.userId === receiver);
             if(user){
                 io.to(user.socketId).emit('receive-notification',notification)
             }
