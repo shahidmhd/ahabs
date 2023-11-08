@@ -79,23 +79,6 @@ const initializeSocketIO = (io) => {
     socket.on('chat-message', async (message) => {
       const { to} = message;
       console.log(message, 'Received chat message from client');
-    
-
-    //    try {
-    //     // Find the corresponding Room document by roomId
-    //     const room = await Room.findOne({ _id: roomId });
-    // console.log(room,"iiiiiiiiiiiii");
-    //     if (room) {
-    //       // Compare the _id of the new message with the current latestmessage
-    //       // If the new message is more recent, update the 'latestmessage' field
-          
-    //         room.latestmessage = _id;
-    //         await room.save(); // Save the updated Room document
-      
-    //     }
-    //   } catch (error) {
-    //     console.error('Error updating the latestmessage field:', error);
-    //   }
       const user = onlineUsers.find((user) => user.userId === to);
        if (user) {
          io.to(user.socketId).emit("chat-message", message);

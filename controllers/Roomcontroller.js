@@ -233,18 +233,30 @@ export const createuseroom = async (req, res, next) => {
     try {
       // Check if the message with messageId exists
       const message = await Chat.findById(messageId);
+      console.log(message,"message");
       if (!message) {
         throw new AppError("Message not found", 404);
       }
-  
       // Check if the user trying to delete the message is the sender
       if (message.senderId.toString() !== userId) {
         throw new AppError("You are not authorized to delete this message", 403);
       }
+
   
       // Delete the message for everyone in the room
       await Chat.deleteOne({ _id: messageId });
-  
+
+        // update the latest message
+      const latestMessage = await Chat.findOne({ roomId:message.roomId }) .sort({ createdAt: -1 }).limit(1);
+      if (latestMessage) { 
+        const room = await Room.findOne({ _id:message.roomId });
+        if (room) { 
+         room.latestmessage =latestMessage. _id;
+            await room.save(); // Save the updated Room document
+        }
+      }
+
+      
       res.status(200).json({ status: "true", message: 'Message deleted for everyone' });
     } catch (error) {
       console.error(error);
@@ -260,6 +272,8 @@ export const createuseroom = async (req, res, next) => {
       const currentUserId=req.userId
       // Query the Room model to get a list of chat rooms
       // const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate('latestmessage');
+        const chatRoomsss = await Room.find({ latestmessage: { $ne: null } })
+        console.log(chatRoomsss,"shahid");
       const chatRooms = await Room.find({
         latestmessage: { $ne: null },
         members: currentUserId,
@@ -292,6 +306,7 @@ export const createuseroom = async (req, res, next) => {
           room.messageCount = 0;
         }
       }
+      console.log(chatRooms,"rrrrrrrr");
       res.status(200).json({status:"true",data:chatRooms });
     } catch (error) {
       console.error(error);
