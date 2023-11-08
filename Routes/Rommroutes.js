@@ -11,7 +11,7 @@ router.get('/messages/:id',userAuthMid,getmessages)
 router.get('/chatted-users', userAuthMid, getChattedUsers);
 router.delete('/deletechat/:id', userAuthMid,deleteMessage);
 router.put('/deleteforme/:id', userAuthMid,messagedeleteforme);
-router.delete('/deleteforeveryone/:id', userAuthMid,deleteforeveryone);
+router.post('/deleteforeveryone/:id', userAuthMid,deleteforeveryone);
 router.get('/chattedrooms', userAuthMid, chattedrooms);
 router.get('/clearchat/:id', userAuthMid,clearchat);
 
