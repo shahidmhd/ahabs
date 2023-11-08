@@ -48,7 +48,7 @@ const initializeSocketIO = (io) => {
     socket.on('delete-for-everyone', (data) => {
       console.log(data,"data");
       const {receiverId} = data;
-            const user = activeUsers.find((user) => user.userId === receiverId);
+            const user = onlineUsers.find((user) => user.userId === receiverId);
             if(user){
                 io.to(user.socketId).emit('delete-for-everyone',data)
            }
