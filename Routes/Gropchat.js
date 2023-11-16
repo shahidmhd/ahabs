@@ -3,6 +3,7 @@ const router = express.Router();
 import upload from '../config/multerconfig.js'
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import { addAdmin, addUserToGroup, creategroup, deletegroup, editgroup, exitGroup, getGroupMembers, removeAdmin, removeUserFromGroup } from '../controllers/Groupcontroller.js';
+import { addmessage, deleteforeveryone, getmessages, messagedeleteforme } from '../controllers/Groupchatcontroller.js';
 
 
 
@@ -15,4 +16,10 @@ router.post('/exitgroup/:groupId', userAuthMid, exitGroup);
 router.post('/addadmin/:groupId',userAuthMid, addAdmin);
 router.post('/removeadmin/:groupId',userAuthMid,removeAdmin);
 router.get('/groupmembers/:groupId',userAuthMid, getGroupMembers)
+
+
+router.post('/sendmessage/:groupId',userAuthMid,addmessage)
+router.put('/deleteforme/:id',userAuthMid,messagedeleteforme)
+router.put('/deleteforeveryone/:id',userAuthMid,deleteforeveryone)
+router.get('/getallmessages/:id',userAuthMid,getmessages)
 export default router;

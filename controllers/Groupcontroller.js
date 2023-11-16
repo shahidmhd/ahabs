@@ -1,7 +1,7 @@
 import Group from "../Models/Groupmodel.js"
 import { s3 } from '../config/Awss3.js'
 import AppError from "../utils/AppError.js";
-
+import Groupmessage from "../Models/Groupmessageschema.js"
 export const creategroup = async (req, res, next) => {
     try {
         const createdByUserId = req.userId;
@@ -163,6 +163,9 @@ export const creategroup = async (req, res, next) => {
             };
             await s3.deleteObject(deleteParams).promise();
           }
+
+          // Remove all messages associated with the group from the database
+           await Groupmessage.deleteMany({ groupId: groupId });
       
           // Remove the group chat from the database
           await Group.deleteOne({ _id: groupId });
