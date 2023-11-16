@@ -22,7 +22,7 @@ export const creategroup = async (req, res, next) => {
           // Upload the file to S3
           const { originalname, buffer } = req.file;
           const params = {
-            Bucket: 'ahabs',
+            Bucket: 'shahidbucketsample',
             Key: `groupprofile/${originalname}`,// Adjust the path and filename as needed
             Body: buffer,
           };
@@ -95,7 +95,7 @@ export const creategroup = async (req, res, next) => {
               // Delete the existing image from S3
               const existingKey = existingGroupChat.image.split('/').pop(); // Extract the existing filename
               const deleteParams = {
-                Bucket: 'ahabs',
+                Bucket: 'shahidbucketsample',
                 Key: `groupprofile/${existingKey}`,
               };
               await s3.deleteObject(deleteParams).promise();
@@ -104,7 +104,7 @@ export const creategroup = async (req, res, next) => {
             // Upload the new image to S3
             const { originalname, buffer } = req.file;
             const params = {
-              Bucket: 'ahabs',
+              Bucket: 'shahidbucketsample',
               Key: `groupprofile/${originalname}`, // Adjust the path and filename as needed
               Body: buffer,
             };
