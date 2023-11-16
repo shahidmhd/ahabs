@@ -22,7 +22,7 @@ export const creategroup = async (req, res, next) => {
           // Upload the file to S3
           const { originalname, buffer } = req.file;
           const params = {
-            Bucket: 'shahidbucketsample',
+            Bucket: 'ahabsimages',
             Key: `groupprofile/${originalname}`,// Adjust the path and filename as needed
             Body: buffer,
           };
@@ -90,21 +90,21 @@ export const creategroup = async (req, res, next) => {
       
           // Check if a new image was uploaded
           if (req.file) {
-            // Check if an image is associated with the existing group chat
-            if (existingGroupChat.image) {
-              // Delete the existing image from S3
-              const existingKey = existingGroupChat.image.split('/').pop(); // Extract the existing filename
-              const deleteParams = {
-                Bucket: 'ahabs',
-                Key: `groupprofile/${existingKey}`,
-              };
-              await s3.deleteObject(deleteParams).promise();
-            }
+            // // Check if an image is associated with the existing group chat
+            // if (existingGroupChat.image) {
+            //   // Delete the existing image from S3
+            //   const existingKey = existingGroupChat.image.split('/').pop(); // Extract the existing filename
+            //   const deleteParams = {
+            //     Bucket: 'ahabsimages',
+            //     Key: `groupprofile/${existingKey}`,
+            //   };
+            //   await s3.deleteObject(deleteParams).promise();
+            // }
       
             // Upload the new image to S3
             const { originalname, buffer } = req.file;
             const params = {
-              Bucket: 'ahabs',
+              Bucket: 'ahabsimages',
               Key: `groupprofile/${originalname}`, // Adjust the path and filename as needed
               Body: buffer,
             };
@@ -158,7 +158,7 @@ export const creategroup = async (req, res, next) => {
             // Delete the existing image from S3
             const existingKey = existingGroupChat.image.split('/').pop(); // Extract the existing filename
             const deleteParams = {
-              Bucket: 'ahabs',
+              Bucket: 'ahabsimages',
               Key: `groupprofile/${existingKey}`,
             };
             await s3.deleteObject(deleteParams).promise();

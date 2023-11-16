@@ -7,7 +7,7 @@ import { addAdmin, addUserToGroup, creategroup, deletegroup, editgroup, exitGrou
 
 
 router.post('/creategroup',userAuthMid,upload.single('image'),creategroup)
-router.put('/editgroup/:groupId', userAuthMid, upload.single('image'), editgroup);
+router.post('/editgroup/:groupId', userAuthMid, upload.single('image'), editgroup);
 router.delete('/deletegroup/:groupId', userAuthMid, deletegroup);
 router.post('/addUser/:groupId',userAuthMid, addUserToGroup);
 router.post('/removegroups/:groupId/removeUser/:userIdToRemove',userAuthMid,removeUserFromGroup);
