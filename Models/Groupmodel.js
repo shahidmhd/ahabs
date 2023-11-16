@@ -6,44 +6,31 @@ const groupChatSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  description: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  createdBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User', // Reference to the User model
+      required: true,
+    }
+  ],
   participants: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", // Reference to a User schema (if you have one)
     },
   ],
-  messages: [
-    {
-      sender: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Reference to the User who sent the message
-      },
-      text: String,
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
-      replies: [
-        {
-          sender: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User", // Reference to the User who sent the reply
-          },
-          text: String,
-          createdAt: {
-            type: Date,
-            default: Date.now,
-          },
-        },
-      ],
-    },
-  ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  image: {
+    type: String, // You might consider using a different type based on your image storage strategy (e.g., Buffer for binary data)
+  }
+},{
+  timestamps:true
 });
 
 const GroupChat = mongoose.model("GroupChat", groupChatSchema);
 
-module.exports = GroupChat;
+export default GroupChat;
