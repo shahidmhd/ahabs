@@ -105,7 +105,7 @@ export const addprofilepicture = async (req, res, next) => {
 
     const { originalname, buffer } = req.file;
     const params = {
-      Bucket: 'shahidbucketsample',
+      Bucket: 'ahabs',
       Key: `profile-pictures/${originalname}`, // Adjust the path and filename as needed
       Body: buffer,
     };
