@@ -44,7 +44,6 @@ export const createuseroom = async (req, res, next) => {
   export const getmessages=async(req,res)=>{
     try {
       const roomid = req.params.id; // Get the room ID from the request parameters
-  // console.log(roomid,"yttttttttttttttttttttt");
       // Find all messages where roomId matches the specified roomid
       const messages = await Chat.find({ roomId: roomid }).populate('replyId','message');
   
@@ -122,8 +121,6 @@ export const createuseroom = async (req, res, next) => {
             chattedUserDetails.push({
               roomId: room._id,
               sendeduser: otherUser,
-              // latestMessage: message.message,
-          // currentUser: currentUser,
             });
           }
         }
@@ -270,10 +267,6 @@ export const createuseroom = async (req, res, next) => {
   export const chattedrooms = async (req, res,next) => {
     try {
       const currentUserId=req.userId
-      // Query the Room model to get a list of chat rooms
-      // const chatRooms = await Room.find({ latestmessage: { $ne: null } }).populate('latestmessage');
-        const chatRoomsss = await Room.find({ latestmessage: { $ne: null } })
-        console.log(chatRoomsss,"shahid");
       const chatRooms = await Room.find({
         latestmessage: { $ne: null },
         members: currentUserId,
@@ -290,12 +283,6 @@ export const createuseroom = async (req, res, next) => {
         },
       ]);
 
-      // chatRooms.forEach((room) => {
-      //   if (room.members.length > 0) {
-      //     room.members = room.members.filter((member) => member._id.toString() !== currentUserId);
-      //   }
-      // });
-
       for (const room of chatRooms) {
         if (room.members.length > 0) {
           room.members = room.members.filter((member) => member._id.toString() !== currentUserId);
@@ -306,7 +293,6 @@ export const createuseroom = async (req, res, next) => {
           room.messageCount = 0;
         }
       }
-      console.log(chatRooms,"rrrrrrrr");
       res.status(200).json({status:"true",data:chatRooms });
     } catch (error) {
       console.error(error);
