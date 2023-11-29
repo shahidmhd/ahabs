@@ -3,10 +3,7 @@ import mongoose from 'mongoose'
 const chatSchema = new mongoose.Schema({
   senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   message: String,
-  deleted:{
-    type:Boolean,
-    default:false
-     },
+  deleted:{type:Boolean,default:false},
   groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'GroupChat' },
   replyId: {
     type: mongoose.Schema.Types.ObjectId,

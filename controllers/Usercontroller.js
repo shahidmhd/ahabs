@@ -1,8 +1,12 @@
 import User from '../Models/Usermodel.js'; // Import your User model (adjust the import path as needed)
-import { AWS, s3 } from '../config/Awss3.js'
+import {s3 } from '../config/Awss3.js'
 import AppError from '../utils/AppError.js';
 import Room from '../Models/Roommodel.js';
 import Notification from '../Models/Notificationmodel.js';
+
+
+  // get all users api
+
 export const getAllUsers = async (req, res, next) => {
   try {
     // Fetch all users from the database
@@ -17,8 +21,10 @@ export const getAllUsers = async (req, res, next) => {
   }
 };
 
+// get all users not currentuser api
+
 export const getAllUsersnotcurrentuser = async (req, res, next) => {
-  const userId = req.userId; // Assuming you have the current user's ID
+  const userId = req.userId; 
 
   try {
     // Fetch all users from the database excluding the current user
@@ -34,9 +40,12 @@ export const getAllUsersnotcurrentuser = async (req, res, next) => {
 };
 
 
-export const editprofile = async (req, res,next) => {
+
+// edit profile datas api
+
+export const editprofile = async (req, res, next) => {
   try {
-    const userId = req.params.id; // Assuming you have middleware that adds the user object to the request
+    const userId = req.params.id;
 
     // Validate that the user exists
     const user = await User.findById(userId);
@@ -45,31 +54,27 @@ export const editprofile = async (req, res,next) => {
       throw new AppError('User not found', 404);
     }
 
-    // Check if the desired username is already in use
-    if (req.body.username && req.body.username !== user.username) {
-      const existingUserWithUsername = await User.findOne({ username: req.body.username });
+    // Concurrently check the existence of the desired username, phone number, and email
+    const [existingUserWithUsername, existingUserWithPhone, existingUserWithEmail] = await Promise.all([
+      req.body.username && req.body.username !== user.username ? User.findOne({ username: req.body.username }) : null,
+      req.body.phone && req.body.phone !== user.phone ? User.findOne({ phone: req.body.phone }) : null,
+      req.body.email && req.body.email !== user.email ? User.findOne({ email: req.body.email }) : null
+    ]);
 
-      if (existingUserWithUsername) {
-        throw new AppError('Username is already exist', 409);
-      }
+
+    // Check if the desired username is already in use
+    if (existingUserWithUsername) {
+      throw new AppError('Username is already exist', 409);
     }
 
     // Check if the desired phone number is already in use
-    if (req.body.phone && req.body.phone !== user.phone) {
-      const existingUserWithPhone = await User.findOne({ phone: req.body.phone });
-
-      if (existingUserWithPhone) {
-        throw new AppError('Phone number is already in exist', 409);
-      }
+    if (existingUserWithPhone) {
+      throw new AppError('Phone number is already in exist', 409);
     }
 
     // Check if the desired email is already in use
-    if (req.body.email && req.body.email !== user.email) {
-      const existingUserWithEmail = await User.findOne({ email: req.body.email });
-
-      if (existingUserWithEmail) {
-        throw new AppError('Email is already in exist', 409);
-      }
+    if (existingUserWithEmail) {
+      throw new AppError('Email is already in exist', 409);
     }
 
     // Update user fields based on the request data
@@ -88,13 +93,15 @@ export const editprofile = async (req, res,next) => {
     await user.save();
 
     // Respond with a success message and the updated user document
-    res.status(200).json({ status:'true', message: 'Profile updated successfully'});
+    res.status(200).json({ status: 'true', message: 'Profile updated successfully' });
   } catch (error) {
     console.error('Error updating profile:', error);
     next(error);
   }
-}
+};
 
+
+// add profile picture
 
 export const addprofilepicture = async (req, res, next) => {
   const userId = req.params.id;
@@ -109,7 +116,6 @@ export const addprofilepicture = async (req, res, next) => {
       Key: `profile-pictures/${originalname}`, // Adjust the path and filename as needed
       Body: buffer,
     };
-
 
     // Upload the file to S3
     const uploadResponse = await s3.upload(params).promise();
@@ -127,7 +133,7 @@ export const addprofilepicture = async (req, res, next) => {
   }
 }
 
-
+// current user api
 
 export const currentuser=async(req,res,next)=>{
   const userId = req.params.id;
@@ -136,32 +142,33 @@ export const currentuser=async(req,res,next)=>{
     const user = await User.findById(userId);
 
     if (user) {
-    res.status(200).json({
-        status: 'true',
-        user,
-      });
+    res.status(200).json({status: 'true', user,});
     } else {
     throw new AppError('user not found',404)
     }
   } catch (err) {
    next(err)
   }
-
 }
 
+// followuser api
 
 export const followuser = async (req, res, next) => {
-  const currentUserId = req.userId; // Get the current user ID from req.body
-  const friendId = req.params.id; // Get the friend's ID from route parameters
-
+       const currentUserId = req.userId; // Get the current user ID from req.body
+       const friendId = req.params.id; // Get the friend's ID from route parameters
   try {
-    const currentUser = await User.findById(currentUserId); // Assuming currentUserId refers to the current user
-    const friendToFollow = await User.findById(friendId);
+
+    // Fetch both the current user and the friend to follow concurrently using Promise.all
+
+    const [currentUser, friendToFollow] = await Promise.all([
+      User.findById(currentUserId),
+      User.findById(friendId),
+    ]);
 
     if (!friendToFollow) {
       throw new AppError('Friend not found',404)
     }
-
+    
     // Check if the current user is already following the friend
     if (currentUser.following.includes(friendId)) {
       throw new AppError('You are already following this friend',400)
@@ -182,8 +189,8 @@ export const followuser = async (req, res, next) => {
       content:" started to following you.",
     });
 
-  const data=  await notification.save();
-  await data.populate('user','username')
+      const data=  await notification.save();
+      await data.populate('user','username')
     res.status(200).json({status:'true', message: 'You are now following this friend',notification:data });
   } catch (error) {
     console.error(error);
@@ -191,14 +198,17 @@ export const followuser = async (req, res, next) => {
   }
 };
 
+// unfollowuser api
+
 export const unfollowUser = async (req, res, next) => {
   const currentUserId =req.userId; // Get the current user ID from req.body
   const friendId = req.params.id; // Get the friend's ID from route parameters
-console.log(currentUserId);
   try {
     // Find the current user and the friend to unfollow
-    const currentUser = await User.findById(currentUserId);
-    const friendToUnfollow = await User.findById(friendId);
+    const [currentUser, friendToUnfollow] = await Promise.all([
+      User.findById(currentUserId),
+      User.findById(friendId),
+    ]);
 
     if (!currentUser || !friendToUnfollow) {
       throw new AppError('User not found',404)
@@ -231,14 +241,19 @@ console.log(currentUserId);
     next(error)
   }
 };
+
+// check follow status api
+
 export const checkFollowStatus = async (req, res, next) => {
   const currentUserId = req.userId; // Get the current user ID from req.body
   const userIdToCheck = req.params.id; // Get the user's ID to check from route parameters
 
   try {
-    // Find the current user and the user to check
-    const currentUser = await User.findById(currentUserId);
-    const userToCheck = await User.findById(userIdToCheck);
+   // Fetch both the current user and the user to check concurrently using Promise.all
+   const [currentUser, userToCheck] = await Promise.all([
+    User.findById(currentUserId),
+    User.findById(userIdToCheck),
+  ]);
 
     if (!currentUser || !userToCheck) {
       // return res.status(404).json({ message: 'User not found' });
@@ -269,6 +284,7 @@ export const checkFollowStatus = async (req, res, next) => {
   }
 };
 
+// list followers api
 
 export const listFollowers = async (req, res, next) => {
   const currentUserId = req.params.id; // Get the current user's ID from route parameters
@@ -291,7 +307,6 @@ export const listFollowers = async (req, res, next) => {
       { _id: { $in: followerIds } },
       { username: 1, profilepicture: 1, _id: 1 }
     );
-
     res.status(200).json({
       status: 'true',
       followers,
@@ -301,6 +316,9 @@ export const listFollowers = async (req, res, next) => {
     next(error)
   }
 };
+
+// listFollowing api
+
 export const listFollowing = async (req, res, next) => {
   const currentUserId = req.params.id; // Get the current user's ID from route parameters
 
@@ -331,6 +349,7 @@ export const listFollowing = async (req, res, next) => {
   }
 };
 
+// create room api
 
 export const createRoom = async (req, res, next) => {
   try {
@@ -344,30 +363,25 @@ export const createRoom = async (req, res, next) => {
         { 'members.user': createdByUserId },
       ],
     });
-    // $and: [
-    //   { 'members.user': { $all: [selectedUserId, createdByUserId, ...otherUserIds] },
-    // ],
+    
     if (existingRoom) {
       // If a room with the same members exists, return the existing room
       return res.status(200).json(existingRoom);
     }
     const newRoomName = `Room_${Date.now()}`;
-    // Create a new room
-    const newRoom = new Room({
+
+
+     // Create a new room
+     const newRoom = new Room({
       name: newRoomName,
       createdBy: createdByUserId,
       members: [
-        {
-          user: selectedUserId,
-        },
-        {
-          user: createdByUserId,
-        },
+        { user: selectedUserId },
+        { user: createdByUserId },
       ],
     });
 
     const room = await newRoom.save();
-    console.log('Room created:', room);
     res.status(201).json(room);
   } catch (err) {
     console.error('Error creating or checking the room:', err);
@@ -375,8 +389,9 @@ export const createRoom = async (req, res, next) => {
   }
 };
 
+// create  or Retrieve room api
 
-export const createOrRetrieveRoom = async (req, res) => {
+export const createOrRetrieveRoom = async (req, res,next) => {
   try {
     const userId = req.params.id;
     const currentUser = req.userId; // Assuming you have user information in the request
@@ -402,6 +417,6 @@ export const createOrRetrieveRoom = async (req, res) => {
     return res.status(201).json(savedRoom);
   } catch (error) {
     console.error('Error creating or retrieving the room:', error);
-    res.status(500).json({ error: 'Error creating or retrieving the room' });
+    next(error)
   }
 };

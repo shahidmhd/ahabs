@@ -1,35 +1,8 @@
-// import express from 'express';
-
-// const router = express.Router();
-
-// import { addProfilePicture, editprofile, getAllUsers } from '../controllers/Usercontroller.js';
-// import userAuthMid from '../middlewear/Authmiddlewear.js';
-
-
-
-// router.get('/getallusers',userAuthMid,getAllUsers)
-// router.post('/editprofile/:id',userAuthMid,editprofile)
-// router.post('/addprofilepicture/:id',userAuthMid,addProfilePicture)
-
-
-
-
-
-
-
-
-
-
-
-// export default router;
-
-
-import {addprofilepicture,checkFollowStatus, createOrRetrieveRoom, createRoom, currentuser, editprofile, followuser, getAllUsers, getAllUsersnotcurrentuser, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
-import userAuthMid from '../middlewear/Authmiddlewear.js';
 import express from 'express';
 const router = express.Router();
+import {addprofilepicture,checkFollowStatus, createOrRetrieveRoom, createRoom, currentuser, editprofile, followuser, getAllUsers, getAllUsersnotcurrentuser, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
+import userAuthMid from '../middlewear/Authmiddlewear.js';
 import upload from '../config/multerconfig.js'
-
 
 
 
@@ -41,13 +14,10 @@ router.get('/currentuser/:id', userAuthMid, currentuser);
 router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'),addprofilepicture);
 router.post('/follow/:id', userAuthMid,followuser);
 router.post('/unfollow/:id', userAuthMid,unfollowUser);
-// Set up the GET route to check follow status
 router.post('/checkFollowStatus/:id',userAuthMid,checkFollowStatus);
 router.get ('/listfollowers/:id',userAuthMid,listFollowers)
 router.get ('/listfollowing/:id',userAuthMid,listFollowing)
-
 router.post('/create-room/:id',userAuthMid,createRoom);
-
 router.post('/chat/:id',createOrRetrieveRoom)
 
 

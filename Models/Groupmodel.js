@@ -11,6 +11,7 @@ const groupChatSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+   private:{type:Boolean,default:false},
   latestmessage:{ type:mongoose.Schema.Types.ObjectId, ref: "Groupmessage" },
   createdBy: [
     {

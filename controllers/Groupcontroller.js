@@ -2,6 +2,10 @@ import Group from "../Models/Groupmodel.js"
 import { s3 } from '../config/Awss3.js'
 import AppError from "../utils/AppError.js";
 import Groupmessage from "../Models/Groupmessageschema.js"
+
+
+// create group api
+
 export const creategroup = async (req, res, next) => {
     try {
         const createdByUserId = req.userId;
@@ -14,7 +18,6 @@ export const creategroup = async (req, res, next) => {
         if (existingGroupChat) {
           throw new AppError('Group name already exists', 400);
         }
-    
         let imageUrl = null;
     
         // Check if an image was uploaded
@@ -29,14 +32,13 @@ export const creategroup = async (req, res, next) => {
     
           // Upload the file to S3
           const uploadResponse = await s3.upload(params).promise();
-    
+
           // Get the URL of the uploaded image
           imageUrl = uploadResponse.Location;
         }
-
          // Add the current user to the participants array from req.body
-    const updatedParticipants = participants ? [...participants, createdByUserId] : [createdByUserId];
-    
+         const updatedParticipants = participants ? [...participants, createdByUserId] : [createdByUserId];
+
         // Create a new GroupChat instance
         const newGroupChat = new Group({
             createdBy:[createdByUserId],
@@ -52,14 +54,14 @@ export const creategroup = async (req, res, next) => {
         // Respond with the saved group chat
         res.status(200).json({status:"true",message: 'Group created successfully',data:savedGroupChat});
       } catch (error) {
-        // Handle errors
-        console.error(error);
-       next(error)
+        next(error)
       }
     };
 
 
-    export const editgroup = async (req, res, next) => {
+    // edit group
+
+     export const editgroup = async (req, res, next) => {
         try {
             const userId = req.userId;
           const { groupId } = req.params;
@@ -86,21 +88,11 @@ export const creategroup = async (req, res, next) => {
               throw new AppError('Group name already exists', 400);
             }
           }
-      
-      
+
+
           // Check if a new image was uploaded
           if (req.file) {
-            // // Check if an image is associated with the existing group chat
-            // if (existingGroupChat.image) {
-            //   // Delete the existing image from S3
-            //   const existingKey = existingGroupChat.image.split('/').pop(); // Extract the existing filename
-            //   const deleteParams = {
-            //     Bucket: 'ahabsimages',
-            //     Key: `groupprofile/${existingKey}`,
-            //   };
-            //   await s3.deleteObject(deleteParams).promise();
-            // }
-      
+          
             // Upload the new image to S3
             const { originalname, buffer } = req.file;
             const params = {
@@ -115,7 +107,7 @@ export const creategroup = async (req, res, next) => {
             // Get the URL of the uploaded image
             existingGroupChat.image = uploadResponse.Location;
           }
-      
+
           // Update the group chat data
           existingGroupChat.name = name || existingGroupChat.name;
           existingGroupChat.description = description || existingGroupChat.description;
@@ -134,52 +126,57 @@ export const creategroup = async (req, res, next) => {
       };
 
 
+      // deletegroup
+
       export const deletegroup = async (req, res, next) => {
         try {
           const { groupId } = req.params;
           const userId = req.userId;
+      
           // Check if the group chat exists
           const existingGroupChat = await Group.findById(groupId);
       
           if (!existingGroupChat) {
-            // Respond with an error if the group chat does not exist
             throw new AppError('Group not found', 404);
           }
-
-              // Check if the current user is the creator of the group
-    if (!existingGroupChat.createdBy.includes(userId)) {
-        // Respond with an error if the user is not the creator
-        throw new AppError('Unauthorized: You are not the creator of this group', 403);
-      }
-  
+      
+          // Check if the current user is the creator of the group
+          if (!existingGroupChat.createdBy.includes(userId)) {
+            throw new AppError('Unauthorized: You are not the creator of this group', 403);
+          }
+      
+          // Array to store promises for parallel execution
+          const deletionPromises = [];
       
           // Check if an image is associated with the existing group chat
           if (existingGroupChat.image) {
-            // Delete the existing image from S3
+            // Delete the existing image from S3 in parallel
             const existingKey = existingGroupChat.image.split('/').pop(); // Extract the existing filename
-            const deleteParams = {
+            const deleteImageParams = {
               Bucket: 'ahabsimages',
               Key: `groupprofile/${existingKey}`,
             };
-            await s3.deleteObject(deleteParams).promise();
+            deletionPromises.push(s3.deleteObject(deleteImageParams).promise());
           }
-
-          // Remove all messages associated with the group from the database
-           await Groupmessage.deleteMany({ groupId: groupId });
+      
+          // Remove all messages associated with the group using bulk delete
+          deletionPromises.push(Groupmessage.deleteMany({ groupId: groupId }));
+      
+          // Wait for all deletion promises to complete
+          await Promise.all(deletionPromises);
       
           // Remove the group chat from the database
           await Group.deleteOne({ _id: groupId });
-
       
           // Respond with a success message
           res.status(200).json({ status: "true", message: 'Group deleted successfully' });
         } catch (error) {
-          // Handle errors
           console.error(error);
           next(error);
         }
       };
-
+      
+// add user to group
 
       export const addUserToGroup = async (req, res, next) => {
         try {
@@ -221,120 +218,245 @@ export const creategroup = async (req, res, next) => {
         }
       };
 
-      export const removeUserFromGroup = async (req, res, next) => {
-        try {
-          const { groupId, userIdToRemove } = req.params;
-          const currentUserId = req.userId; // Assuming you have the user ID in the request
-      
-          // Check if the group chat exists
-          const existingGroupChat = await Group.findById(groupId);
-      
-          if (!existingGroupChat) {
-            // Respond with an error if the group chat does not exist
-            throw new AppError('Group not found', 404);
-          }
-          // Check if the user making the request is the creator of the group
-          if (!existingGroupChat.createdBy.includes(currentUserId)) {
-            // Respond with an error if the user is not the creator
-            throw new AppError('Unauthorized: You are not the creator of this group', 403);
-          }
+      // Remove user from group
 
-           // Check if the user to remove is the current user
-    if (userIdToRemove === currentUserId) {
-        throw new AppError('Cannot remove yourself from the group', 400);
-      }
+
+    //   export const removeUserFromGroup = async (req, res, next) => {
+    //     try {
+    //       const { groupId, userIdToRemove } = req.params;
+    //       const currentUserId = req.userId; // Assuming you have the user ID in the request
+      
+    //       // Check if the group chat exists
+    //       const existingGroupChat = await Group.findById(groupId);
+      
+    //       if (!existingGroupChat) {
+    //         // Respond with an error if the group chat does not exist
+    //         throw new AppError('Group not found', 404);
+    //       }
+    //       // Check if the user making the request is the creator of the group
+    //       if (!existingGroupChat.createdBy.includes(currentUserId)) {
+    //         // Respond with an error if the user is not the creator
+    //         throw new AppError('Unauthorized: You are not the creator of this group', 403);
+    //       }
+
+    //        // Check if the user to remove is the current user
+    // if (userIdToRemove === currentUserId) {
+    //     throw new AppError('Cannot remove yourself from the group', 400);
+    //   }
           
       
-          // Check if the user to remove is a participant in the group
-          if (!existingGroupChat.participants.includes(userIdToRemove)) {
-            throw new AppError('User is not a participant in the group', 400);
-          }
+    //       // Check if the user to remove is a participant in the group
+    //       if (!existingGroupChat.participants.includes(userIdToRemove)) {
+    //         throw new AppError('User is not a participant in the group', 400);
+    //       }
       
 
-            // Remove the user from the participants array
-    existingGroupChat.participants = existingGroupChat.participants.filter(
-        participantId => participantId.toString() !== userIdToRemove.toString()
-      );
+    //         // Remove the user from the participants array
+    // existingGroupChat.participants = existingGroupChat.participants.filter(
+    //     participantId => participantId.toString() !== userIdToRemove.toString()
+    //   );
   
-      // If the user to remove is the creator of the group, remove them from the createdBy array
-      if (existingGroupChat.createdBy.includes(userIdToRemove)) {
-        existingGroupChat.createdBy = existingGroupChat.createdBy.filter(
-          creatorId => creatorId.toString() !== userIdToRemove.toString()
-        );
-      }
+    //   // If the user to remove is the creator of the group, remove them from the createdBy array
+    //   if (existingGroupChat.createdBy.includes(userIdToRemove)) {
+    //     existingGroupChat.createdBy = existingGroupChat.createdBy.filter(
+    //       creatorId => creatorId.toString() !== userIdToRemove.toString()
+    //     );
+    //   }
       
-          // Save the updated group chat to the database
-          const updatedGroupChat = await existingGroupChat.save();
+    //       // Save the updated group chat to the database
+    //       const updatedGroupChat = await existingGroupChat.save();
       
-          // Respond with the updated group chat
-          res.status(200).json({ status: "true", message: 'User removed from the group successfully', data: updatedGroupChat });
-        } catch (error) {
-          // Handle errors
-          console.error(error);
-          next(error);
+    //       // Respond with the updated group chat
+    //       res.status(200).json({ status: "true", message: 'User removed from the group successfully', data: updatedGroupChat });
+    //     } catch (error) {
+    //       // Handle errors
+    //       console.error(error);
+    //       next(error);
+    //     }
+    //   };
+
+     // Remove user from group
+
+    export const removeUserFromGroup = async (req, res, next) => {
+      try {
+        const { groupId, userIdToRemove } = req.params;
+        const currentUserId = req.userId;
+    
+        // Check if the group chat exists
+        const existingGroupChat = await Group.findById(groupId);
+    
+        if (!existingGroupChat) {
+          throw new AppError('Group not found', 404);
         }
-      };
-      
-    export const exitGroup = async (req, res, next) => {
-        try {
-          const { groupId } = req.params;
-          const userIdToRemove = req.userId;
-      
-          // Check if the group chat exists
-          const existingGroupChat = await Group.findById(groupId);
-      
-          if (!existingGroupChat) {
-            // Respond with an error if the group chat does not exist
-            throw new AppError('Group not found', 404);
-          }
-      
-          // Check if the user is a participant in the group
-          if (!existingGroupChat.participants.includes(userIdToRemove)) {
-            throw new AppError('User is not a participant in the group', 400);
-          }
-      
-          // Check if the user is the creator of the group
-          if (existingGroupChat.createdBy.includes(userIdToRemove)) {
-            // If the user is the creator and there are other participants
-            if (existingGroupChat.participants.length > 1) {
-              // Remove the user from the createdBy array
-              existingGroupChat.createdBy = existingGroupChat.createdBy.filter(
+    
+        // Check if the user making the request is the creator of the group
+        if (!existingGroupChat.createdBy.includes(currentUserId)) {
+          throw new AppError('Unauthorized: You are not the creator of this group', 403);
+        }
+    
+        // Check if the user to remove is the current user
+        if (userIdToRemove === currentUserId) {
+          throw new AppError('Cannot remove yourself from the group', 400);
+        }
+    
+        // Check if the user to remove is a participant in the group
+        if (!existingGroupChat.participants.includes(userIdToRemove)) {
+          throw new AppError('User is not a participant in the group', 400);
+        }
+    
+        // Parallelize the removal operations
+        const [filteredParticipants, updatedCreatedBy] = await Promise.all([
+          // Remove the user from the participants array
+          existingGroupChat.participants.filter(
+            participantId => participantId.toString() !== userIdToRemove.toString()
+          ),
+    
+          // If the user to remove is the creator of the group, remove them from the createdBy array
+          existingGroupChat.createdBy.includes(userIdToRemove)
+            ? existingGroupChat.createdBy.filter(
                 creatorId => creatorId.toString() !== userIdToRemove.toString()
-              );
+              )
+            : existingGroupChat.createdBy,
+        ]);
+    
+        // Update the group chat with the filtered participants and updated createdBy array
+        existingGroupChat.participants = filteredParticipants;
+        existingGroupChat.createdBy = updatedCreatedBy;
+    
+        // Save the updated group chat to the database
+        const updatedGroupChat = await existingGroupChat.save();
+    
+        // Respond with the updated group chat
+        res.status(200).json({ status: "true", message: 'User removed from the group successfully', data: updatedGroupChat });
+      } catch (error) {
+        // Handle errors
+        console.error(error);
+        next(error);
+      }
+    };
+    
       
-              // Randomly select a new creator from the participants
-              const randomParticipantIndex = Math.floor(Math.random() * existingGroupChat.participants.length);
-              const newCreatorId = existingGroupChat.participants[randomParticipantIndex];
-        // Add the new creator to the createdBy array
-        existingGroupChat.createdBy.push(newCreatorId);
-              // Remove the userIdToRemove from the participants array
-              existingGroupChat.participants = existingGroupChat.participants.filter(
-                participantId => participantId.toString() !== userIdToRemove.toString()
-              );
-            } else {
-              // If the user is the only participant, delete the group
-              await Group.deleteOne({ _id: groupId });
-              return res.status(200).json({ status: "true", message: 'Group deleted successfully' });
-            }
-          } else {
-            // If the user is not the creator, remove the user from the participants array
+
+// exit group
+
+    // export const exitGroup = async (req, res, next) => {
+    //     try {
+    //       const { groupId } = req.params;
+    //       const userIdToRemove = req.userId;
+      
+    //       // Check if the group chat exists
+    //       const existingGroupChat = await Group.findById(groupId);
+      
+    //       if (!existingGroupChat) {
+    //         // Respond with an error if the group chat does not exist
+    //         throw new AppError('Group not found', 404);
+    //       }
+      
+    //       // Check if the user is a participant in the group
+    //       if (!existingGroupChat.participants.includes(userIdToRemove)) {
+    //         throw new AppError('User is not a participant in the group', 400);
+    //       }
+      
+    //       // Check if the user is the creator of the group
+    //       if (existingGroupChat.createdBy.includes(userIdToRemove)) {
+    //         // If the user is the creator and there are other participants
+    //         if (existingGroupChat.participants.length > 1) {
+    //           // Remove the user from the createdBy array
+    //           existingGroupChat.createdBy = existingGroupChat.createdBy.filter(
+    //             creatorId => creatorId.toString() !== userIdToRemove.toString()
+    //           );
+      
+    //           // Randomly select a new creator from the participants
+    //           const randomParticipantIndex = Math.floor(Math.random() * existingGroupChat.participants.length);
+    //           const newCreatorId = existingGroupChat.participants[randomParticipantIndex];
+    //     // Add the new creator to the createdBy array
+    //     existingGroupChat.createdBy.push(newCreatorId);
+    //           // Remove the userIdToRemove from the participants array
+    //           existingGroupChat.participants = existingGroupChat.participants.filter(
+    //             participantId => participantId.toString() !== userIdToRemove.toString()
+    //           );
+    //         } else {
+    //           // If the user is the only participant, delete the group
+    //           await Group.deleteOne({ _id: groupId });
+    //           return res.status(200).json({ status: "true", message: 'Group deleted successfully' });
+    //         }
+    //       } else {
+    //         // If the user is not the creator, remove the user from the participants array
+    //         existingGroupChat.participants = existingGroupChat.participants.filter(
+    //           participantId => participantId.toString() !== userIdToRemove.toString()
+    //         );
+    //       }
+      
+    //       // Save the updated group chat to the database
+    //       const updatedGroupChat = await existingGroupChat.save();
+      
+    //       // Respond with the updated group chat
+    //       res.status(200).json({ status: "true", message: 'User exited the group successfully', data: updatedGroupChat });
+    //     } catch (error) {
+    //       // Handle errors
+    //       console.error(error);
+    //       next(error);
+    //     }
+    //   };
+
+  export const exitGroup = async (req, res, next) => {
+      try {
+        const { groupId } = req.params;
+        const userIdToRemove = req.userId;
+    
+        // Check if the group chat exists
+        const existingGroupChat = await Group.findById(groupId);
+    
+        if (!existingGroupChat) {
+          throw new AppError('Group not found', 404);
+        }
+    
+        // Check if the user is a participant in the group
+        if (!existingGroupChat.participants.includes(userIdToRemove)) {
+          throw new AppError('User is not a participant in the group', 400);
+        }
+    
+        // Check if the user is the creator of the group
+        if (existingGroupChat.createdBy.includes(userIdToRemove)) {
+          if (existingGroupChat.participants.length > 1) {
+            // Remove the user from createdBy and select a new creator concurrently
+            const [filteredParticipants, newCreatorId] = await Promise.all([
+              Promise.resolve(existingGroupChat.createdBy.filter(
+                creatorId => creatorId.toString() !== userIdToRemove.toString()
+              )),
+              Promise.resolve(existingGroupChat.participants[Math.floor(Math.random() * existingGroupChat.participants.length)]),
+            ]);
+    
+            // Update createdBy and participants arrays
+            existingGroupChat.createdBy = [...filteredParticipants, newCreatorId];
             existingGroupChat.participants = existingGroupChat.participants.filter(
               participantId => participantId.toString() !== userIdToRemove.toString()
             );
+          } else {
+            // If the user is the only participant, delete the group
+            await Group.deleteOne({ _id: groupId });
+            return res.status(200).json({ status: "true", message: 'Group deleted successfully' });
           }
-      
-          // Save the updated group chat to the database
-          const updatedGroupChat = await existingGroupChat.save();
-      
-          // Respond with the updated group chat
-          res.status(200).json({ status: "true", message: 'User exited the group successfully', data: updatedGroupChat });
-        } catch (error) {
-          // Handle errors
-          console.error(error);
-          next(error);
+        } else {
+          // If the user is not the creator, remove the user from the participants array
+          existingGroupChat.participants = existingGroupChat.participants.filter(
+            participantId => participantId.toString() !== userIdToRemove.toString()
+          );
         }
-      };
-      
+    
+        // Save the updated group chat to the database
+        const updatedGroupChat = await existingGroupChat.save();
+    
+        // Respond with the updated group chat
+        res.status(200).json({ status: "true", message: 'User exited the group successfully', data: updatedGroupChat });
+      } catch (error) {
+        // Handle errors
+        console.error(error);
+        next(error);
+      }
+    };
+    
+      // add admin
       
       export const addAdmin = async (req, res, next) => {
         try {
@@ -385,6 +507,7 @@ export const creategroup = async (req, res, next) => {
         }
       };
       
+ // remove admin
 
       export const removeAdmin = async (req, res, next) => {
         try {
@@ -442,7 +565,7 @@ export const creategroup = async (req, res, next) => {
         }
       };
       
-      
+      // get group members
 
       export const getGroupMembers = async (req, res, next) => {
         try {
@@ -467,3 +590,57 @@ export const creategroup = async (req, res, next) => {
           next(error);
         }
       };
+
+
+// group private or public
+
+export const updateGroupToPrivate = async (req, res, next) => {
+  try {
+    const { groupId } = req.params;
+    const currentUserId = req.userId;
+
+    // Use Promise.all to parallelize fetching the existing group and checking the creator
+    const [existingGroup, isCurrentUserCreator] = await Promise.all([
+      Group.findById(groupId),
+      Group.exists({ _id: groupId, createdBy: currentUserId }),
+    ]);
+
+    // Check if the group exists
+    if (!existingGroup) {
+      throw new AppError('Group not found', 404);
+    }
+
+    // Check if the current user is the creator of the group
+    if (!isCurrentUserCreator) {
+      throw new AppError('You do not have permission to update this group', 403);
+    }
+
+    // Toggle the value of the private field
+    existingGroup.private = !existingGroup.private;
+
+    // Save the updated group
+    await existingGroup.save();
+
+    res.status(200).json({ status: 'true', data: existingGroup });
+  } catch (error) {
+    console.error('Error updating group to private:', error.message);
+    next(error);
+  }
+};
+
+
+// get all group not private
+
+export const getAllNonPrivateGroups = async (req, res, next) => {
+  try {
+    // Find all groups where private is not true
+    const groups = await Group.find({ private: { $ne: true } });
+
+    res.status(200).json({ status: 'true', data: groups });
+  } catch (error) {
+    console.error('Error fetching non-private groups:', error.message);
+    next(error);
+  }
+};
+
+

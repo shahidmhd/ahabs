@@ -1,7 +1,6 @@
-// Import your User model
 import User from '../Models/Usermodel.js'; // Update the path as needed
 import bcrypt from 'bcrypt';
-import { generateToken, verifyToken } from '../utils/jwtcreation.js';
+import { generateToken} from '../utils/jwtcreation.js';
 import nodemailer from 'nodemailer'
 import AppError from '../utils/AppError.js'
 import VerificationRecord from '../Models/verificationmodel.js';
@@ -19,48 +18,38 @@ const transporter = nodemailer.createTransport({
 });
 
 
+
+// Register api
+
 export const RegisterUser = async (req, res, next) => {
   try {
-    // Extract user registration data from the request body
     const { email, phone, password, username, gender, dateOfBirth } = req.body;
-    // Check if an email is provided
-    // Check if neither email nor phone is provided
+
     if (!email && !phone) {
-      // return res.status(400).json({ message: 'Email or phone is required' });
-      // throw new AppError('Email or phone is required', 400);
-      throw new AppError('Email or phone is required', 400)
+      throw new AppError('Email or phone is required', 400);
     }
 
-    if (email) {
-      // Check if the email already exists in the database
-      const existingEmailUser = await User.findOne({ email });
-      if (existingEmailUser) {
-        // return res.status(409).json({ message: 'Email already exists' });
-        throw new AppError('Email already exists', 409)
-      }
+    // Use Promise.all for concurrent email and phone existence checks
+    const [existingEmailUser, existingPhoneUser, existingUsername] = await Promise.all([
+      email ? User.findOne({ email }) : null,
+      phone ? User.findOne({ phone }) : null,
+      username ? User.findOne({ username }) : null
+    ]);
+
+    if (existingEmailUser) {
+      throw new AppError('Email already exists', 409);
     }
 
-    if (phone) {
-      // Check if the phone number already exists in the database
-      const existingPhoneUser = await User.findOne({ phone });
-      if (existingPhoneUser) {
-        // return res.status(409).json({ message: 'Phone number already exists'});
-        throw new AppError('Phone number already exists', 409)
-      }
+    if (existingPhoneUser) {
+      throw new AppError('Phone number already exists', 409);
     }
-    if (username) {
-      // Check if the phone number already exists in the database
-      const existingusername = await User.findOne({ username });
-      if (existingusername) {
-        // return res.status(409).json({ message: 'username already exists' });
-        throw new AppError('username already exists', 409)
 
-      }
+    if (existingUsername) {
+      throw new AppError('Username already exists', 409);
     }
-    // Hash the user's password
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user document
     const newUser = new User({
       email,
       phone,
@@ -70,93 +59,74 @@ export const RegisterUser = async (req, res, next) => {
       dateOfBirth,
     });
 
-    // Save the user to the database
     await newUser.save();
 
-    // Create a JWT token for the newly registered user
-    const token = generateToken(newUser._id)
-    // Return the token as a response
-    res.status(201).json({ status: 'true',userId:newUser._id, message: 'User registered successfully', token });
-  } catch (error) {
-    // console.error('Registration error:', error);
-    // res.status(500).json({ message: 'An error occurred during registration.' });
-    // throw new AppError('Email or phone is required', 400);
-    next(error)
+    const token = generateToken(newUser._id);
 
+    res.status(201).json({ status: 'true', userId: newUser._id, message: 'User registered successfully', token });
+  } catch (error) {
+    next(error);
   }
-}
+};
+
+  // Login api
 
 export const userlogin = async (req, res, next) => {
-
   try {
-    // Extract user login data from the request body
     const { identifier, password } = req.body;
 
-    // Check if either identifier or password is missing
     if (!identifier || !password) {
-      // return res.status(400).json({ message: 'Email or password are required' });
-      throw new AppError('Email or password are required', 400)
+      throw new AppError('Email or password are required', 400);
     }
 
     let user;
 
-    // Check if the provided identifier is in email format
-    if (identifier.includes('@')) {
-      // If it's an email, find the user by email
-      user = await User.findOne({ email: identifier });
-    } else {
-      // If it's not an email, assume it's a phone number and find the user by phone
-      user = await User.findOne({ phone: identifier });
-    }
-    // Check if the user exists
+    // Use Promise.all for concurrent email and phone identification checks
+    const [emailUser, phoneUser] = await Promise.all([
+      identifier.includes('@') ? User.findOne({ email: identifier }) : null,
+      User.findOne({ phone: identifier })
+    ]);
+
+    // Choose the user based on the results of email and phone checks
+    user = emailUser || phoneUser;
+
     if (!user) {
-      // return res.status(404).json({ message: 'User not found' });
-      throw new AppError('User not found', 400)
+      throw new AppError('User not found', 400);
     }
 
-    // Check if the provided password matches the stored hashed password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      // return res.status(401).json({ message: 'Invalid password' });
-      throw new AppError('Invalid password', 401)
+      throw new AppError('Invalid password', 401);
     }
 
-    // Generate a JWT token for the authenticated user
     const token = generateToken(user._id);
 
-    // Return the token as a response
-    res.status(200).json({ status: 'true',userId:user._id, message: 'Login successful', token });
+    res.status(200).json({ status: 'true', userId: user._id, message: 'Login successful', token });
   } catch (error) {
-    // console.error('Login error:', error);
-    // res.status(500).json({ message: 'An error occurred during login.' });
-    next(error)
+    next(error);
   }
-}
+};
 
-
-
+  // Email verification
 
 export const emailverification = async (req, res, next) => {
   try {
-    // Extract the user's email from the request body
     const { email } = req.body;
-  // Check if there's an existing user with the provided email
-  const existingUser = await User.findOne({ email });
 
-  if (existingUser) {
-    // Check if the user is already verified
+    // Use Promise.all for concurrent database queries
+    const [existingUser, verificationRecord] = await Promise.all([
+      User.findOne({ email }),
+      VerificationRecord.findOne({ email })
+    ]);
+
+    if (existingUser) {
       // User is already verified
       return res.status(400).json({ status: 'fail', message: 'User is already exist' });
-    
-  }
-    // Check if there's an existing verification record for the email
-    let verificationRecord = await VerificationRecord.findOne({ email });
-
-    if (!verificationRecord) {
-      // If there's no existing record, create a new one
-      verificationRecord = new VerificationRecord({ email });
     }
+
+    // If there's no existing verification record, create a new one
+    const newVerificationRecord = verificationRecord || new VerificationRecord({ email });
 
     // Generate a new random 6-digit verification code
     const newVerificationCode = generateRandomCode();
@@ -165,11 +135,11 @@ export const emailverification = async (req, res, next) => {
     const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes in milliseconds
 
     // Update the verification record with the new code and expiration time
-    verificationRecord.code = newVerificationCode;
-    verificationRecord.expiresAt = expirationTime;
+    newVerificationRecord.code = newVerificationCode;
+    newVerificationRecord.expiresAt = expirationTime;
 
     // Save the updated or new verification record to your database
-    await verificationRecord.save();
+    await newVerificationRecord.save();
 
     // Create the email message with the verification code
     const emailMessage = `Your verification code is: ${newVerificationCode}\n\nThis code is valid for 5 minutes.`;
@@ -192,19 +162,62 @@ export const emailverification = async (req, res, next) => {
   }
 };
 
+   // Function to generate a random 6-digit code
+
+    function generateRandomCode() {
+      const min = 100000; // Minimum 6-digit number
+      const max = 999999; // Maximum 6-digit number
+      return String(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
 
 
-// Function to generate a random code of the specified length
-// Function to generate a random 6-digit code
-function generateRandomCode() {
-  const min = 100000; // Minimum 6-digit number
-  const max = 999999; // Maximum 6-digit number
-  return String(Math.floor(Math.random() * (max - min + 1)) + min);
-}
 
+  // Email verification api
 
+export const verifyEmail = async (req, res, next) => {
+  try {
+    // Extract email and code from the request body
+    const { email, code } = req.body;
+
+    // Find the verification record and user in the database concurrently
+    const [verificationRecord, user] = await Promise.all([
+      VerificationRecord.findOne({ email, code }),
+      User.findOne({ email })
+    ]);
+
+    if (!verificationRecord) {
+      // Record not found or expired
+      return res.status(404).json({ status: 'fail', message: 'Invalid verification code' });
+    }
+
+    // Check if the verification code is still valid (not expired)
+    const currentTime = new Date();
+    if (verificationRecord.expiresAt <= currentTime) {
+      // Code has expired
+      return res.status(400).json({ status: 'fail', message: 'Verification code has expired' });
+    }
+
+    if (!user) {
+      // User not found
+      return res.status(404).json({ status: 'fail', message: 'User not found' });
+    }
+
+    // Update the user's "emailVerified" field to true and delete the verification record
+    await Promise.all([
+      User.updateOne({ email }, { verified: true }),
+      VerificationRecord.deleteOne({ email, code })
+    ]);
+
+    // Respond with a success message
+    return res.status(200).json({ status: 'true', message: 'Email verification successful' });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Function to delete expired verification records
+
+
 const deleteExpiredVerificationRecords = async () => {
   try {
     const now = new Date();
@@ -226,54 +239,3 @@ cron.schedule('0 3 * * *', deleteExpiredVerificationRecords);
 // cron.schedule('0 3 1 * *', deleteExpiredVerificationRecords);
 // Schedule the job to run on a specific date and time every year (e.g., January 1st at 3:00 AM)
 // cron.schedule('0 3 1 1 *', deleteExpiredVerificationRecords);
-
-
-
-
-// verificationController.js
-export const verifyEmail = async (req, res, next) => {
-  try {
-    // Extract email and code from the request body
-    const { email, code } = req.body;
-
-    // Find the verification record in the database
-    const verificationRecord = await VerificationRecord.findOne({ email, code });
-
-    if (!verificationRecord) {
-      // Record not found or expired
-      // throw new AppError('Invalid verification code', 404);
-      return res.status(404).json({ status: "fail", message: 'Invalid verification code' });
-    }
-
-    // Check if the verification code is still valid (not expired)
-    const currentTime = new Date();
-    if (verificationRecord.expiresAt <= currentTime) {
-      // Code has expired
-      // throw new AppError('Verification code has expired', 400);
-      return res.status(400).json({ status: "fail", message: 'Verification code has expired' });
-    }
- // Mark the email as verified (update your user's document in the database here)
-//  const user = await User.findOne({ email });
-
-//  if (!user) {
-//    return res.status(404).json({ status: 'fail', message: 'User not found' });
-//  }
-
-//  // Update the user's "verified" field to true
-//  user.verified = true;
-//  await user.save();
-    // Mark the email as verified (update your user's document in the database here)
-    // Add your logic here to mark the user's email as verified in your database
-    // Example: user.emailVerified = true; await user.save();
-
-    // Delete the verification record from the database
-    await VerificationRecord.deleteOne({ email, code });
-
-    // Respond with a success message
-    return res.status(200).json({ status: 'true', message: 'Email verification successful' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-

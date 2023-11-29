@@ -1,5 +1,6 @@
 import Notification from "../Models/Notificationmodel.js";
 
+//   get all notification api
 
 export const getallnotification = async (req, res, next) => {
     try {

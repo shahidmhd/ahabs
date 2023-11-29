@@ -1,6 +1,6 @@
 
 let onlineUsers = [];
-
+// let groups = {};
 
 const initializeSocketIO = (io) => {
   io.on('connection',async (socket) => {
@@ -43,6 +43,57 @@ const initializeSocketIO = (io) => {
        }
     });
 
+    // socket.on('chat-message', async (message) => {
+    //   const { to, groupId } = message;
+    //   console.log(message, 'Received chat message from client');
+
+    //   // If the message is for a group
+    //   if (groupId) {
+    //     if (!groups[groupId]) {
+    //       groups[groupId] = [];
+    //     }
+
+    //     groups[groupId].forEach((user) => {
+    //       io.to(user.socketId).emit('chat-message', message);
+    //     });
+    //   } else {
+    //     // If the message is for a specific user
+    //     const user = onlineUsers.find((user) => user.userId === to);
+    //     if (user) {
+    //       io.to(user.socketId).emit('chat-message', message);
+    //     }
+    //   }
+    // });
+
+    
+    // socket.on('create-group', (groupInfo) => {
+    //   const { groupId, groupName, participants } = groupInfo;
+
+    //   // Add the group to the groups object
+    //   groups[groupId] = participants.map((participantId) => {
+    //     const participant = onlineUsers.find((user) => user.userId === participantId);
+    //     return participant ? participant.socketId : null;
+    //   }).filter((socketId) => socketId !== null);
+
+    //   // Notify participants about the new group
+    //   participants.forEach((participantId) => {
+    //     const participant = onlineUsers.find((user) => user.userId === participantId);
+    //     if (participant) {
+    //       io.to(participant.socketId).emit('group-created', { groupId, groupName, participants });
+    //     }
+    //   });
+    // });
+
+    // socket.on('group-chat-message', (message) => {
+    //   const { groupId } = message;
+    //   console.log(message, 'Received group chat message from client');
+    
+    //   if (groups[groupId]) {
+    //     groups[groupId].forEach((userSocketId) => {
+    //       io.to(userSocketId).emit('group-chat-message', message);
+    //     });
+    //   }
+    // });
 
 
     socket.on('delete-for-everyone', (data) => {

@@ -4,17 +4,6 @@ import userAuthMid from '../middlewear/Authmiddlewear.js';
 const router = express.Router();
 
 
-
-
 router.get('/getnotification',userAuthMid,getallnotification)
-
-
-
-
-
-
-
-
-
 
 export default router;
