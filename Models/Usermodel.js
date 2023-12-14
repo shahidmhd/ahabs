@@ -75,7 +75,30 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://res-console.cloudinary.com/dxe7xokgr/thumbnails/v1/image/upload/v1696574351/MjI1LWRlZmF1bHQtYXZhdGFyX3F6emx3eA==/grid_landscape', // Replace with the actual path or URL of your default profile picture
   },
-  
+  purpose:{
+    type: String,
+  },
+  profiletype:{
+    type: String,
+  },
+  profileframe:{
+    type: String,
+  },
+  profilecard:{
+    type: String,
+  },
+  address:{
+    type:String,
+  },
+  workingaddress:{
+    type:String,
+  },
+  links: [
+    {
+      type: String,
+    },
+  ],
+
 }, {
   timestamps: true,
 });

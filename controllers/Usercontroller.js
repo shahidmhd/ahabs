@@ -45,8 +45,7 @@ export const getAllUsersnotcurrentuser = async (req, res, next) => {
 
 export const editprofile = async (req, res, next) => {
   try {
-    const userId = req.params.id;
-
+    const userId = req.userId
     // Validate that the user exists
     const user = await User.findById(userId);
 
@@ -79,7 +78,7 @@ export const editprofile = async (req, res, next) => {
 
     // Update user fields based on the request data
     const allowedFields = [
-      'username', 'email', 'phone', 'password', 'gender', 'dateOfBirth', 'Bio', 'profilepicture'
+      'username', 'email', 'phone', 'password', 'gender', 'dateOfBirth', 'Bio', 'profilepicture','purpose','profiletype','profileframe','profilecard','address','workingaddress','links'
       // Add more fields as needed
     ];
 
@@ -420,3 +419,5 @@ export const createOrRetrieveRoom = async (req, res,next) => {
     next(error)
   }
 };
+
+

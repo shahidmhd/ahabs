@@ -9,7 +9,7 @@ import upload from '../config/multerconfig.js'
 
 router.get('/getallusers', userAuthMid, getAllUsers);
 router.get('/getusernotcurrenutuser', userAuthMid, getAllUsersnotcurrentuser);
-router.post('/editprofile/:id', userAuthMid, editprofile);
+router.post('/editprofile', userAuthMid, editprofile);
 router.get('/currentuser/:id', userAuthMid, currentuser);
 router.post('/addprofilepicture/:id', userAuthMid, upload.single('profilePicture'),addprofilepicture);
 router.post('/follow/:id', userAuthMid,followuser);
