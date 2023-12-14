@@ -16,6 +16,7 @@ import GroupRouter from './Routes/Gropchat.js'
 import EducationRouter from './Routes/Educatioroutes.js'
 import WorkRouter from './Routes/Workroutes.js'
 import Profiledetail from './Routes/Profiledetailroutes.js'
+import Defaultdetail from './Routes/Defaultrotes.js'
 import errorHandlingMiddleware from './middlewear/errorhandlingmiddlewear.js';
 // Load environment variables from a .env file
 dotenv.config();
@@ -64,6 +65,7 @@ app.use('/api/group',GroupRouter)
 app.use('/api/education',EducationRouter)
 app.use('/api/work',WorkRouter)
 app.use('/api/profiledetail',Profiledetail)
+app.use('/api/default',Defaultdetail)
 
 
 
