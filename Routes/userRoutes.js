@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import {addprofilepicture,checkFollowStatus, createOrRetrieveRoom, createRoom, currentuser, editprofile, followuser, getAllUsers, getAllUsersnotcurrentuser, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
+import {addprofilepicture,checkFollowStatus, checkbothFollow, createOrRetrieveRoom, createRoom, currentuser, editprofile, followuser, getAllUsers, getAllUsersnotcurrentuser, listFollowers, listFollowing, unfollowUser } from '../controllers/Usercontroller.js';
 import userAuthMid from '../middlewear/Authmiddlewear.js';
 import upload from '../config/multerconfig.js'
 
@@ -17,6 +17,7 @@ router.post('/unfollow/:id', userAuthMid,unfollowUser);
 router.post('/checkFollowStatus/:id',userAuthMid,checkFollowStatus);
 router.get ('/listfollowers/:id',userAuthMid,listFollowers)
 router.get ('/listfollowing/:id',userAuthMid,listFollowing)
+router.get ('/getbothfollower',userAuthMid,checkbothFollow)
 router.post('/create-room/:id',userAuthMid,createRoom);
 router.post('/chat/:id',createOrRetrieveRoom)
 

@@ -3,6 +3,9 @@ import {s3 } from '../config/Awss3.js'
 import AppError from '../utils/AppError.js';
 import Room from '../Models/Roommodel.js';
 import Notification from '../Models/Notificationmodel.js';
+import  mongoose  from 'mongoose';
+
+// Now you can use ObjectId in your code
 
 
   // get all users api
@@ -92,7 +95,7 @@ export const editprofile = async (req, res, next) => {
     await user.save();
 
     // Respond with a success message and the updated user document
-    res.status(200).json({ status: 'true', message: 'Profile updated successfully' });
+    res.status(200).json({ status: 'true', message: 'Profile updated successfully',data:user  });
   } catch (error) {
     console.error('Error updating profile:', error);
     next(error);
@@ -282,6 +285,108 @@ export const checkFollowStatus = async (req, res, next) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+// check bothfollow users get api
+
+// export const checkbothFollow = async (req, res, next) => {
+//   const currentUserId = req.userId; // Get the current user ID from req.body
+
+//   try {
+//     // Fetch both the current user and the user to check concurrently using Promise.all
+//     const currentUser = await User.findById(currentUserId);
+
+//     if (!currentUser) {
+//       throw new AppError("User not found ", 404);
+//     }
+//     //  Promise.all to concurrently convert followers arrays to sets
+//     const [setFollowersA, setFollowersB] = await Promise.all([
+//       Promise.resolve(new Set(currentUser.followers.map(String))),
+//       Promise.resolve(new Set(currentUser.following.map(String))),
+//     ]);
+
+//     const commonElementIds = [...setFollowersA].filter((element) =>
+//       setFollowersB.has(element)
+//     );
+
+//     // Fetch the actual user objects for the common elements
+
+//     // const commonElements = await User.find({ _id: { $in: commonElementIds } });
+
+// const commonElements = await User.aggregate([
+//   {
+//     $match: {
+//       _id: {
+//         $in: commonElementIds.map(id => {
+//           try {
+//             // Newer versions of mongoose
+//             return mongoose.Types.ObjectId(id);
+//           } catch (error) {
+//             // Older versions of mongoose
+//             return new mongoose.Types.ObjectId(id);
+//           }
+//         })
+//       }
+//     }
+//   },
+//   {
+//     $project: {
+//       username: 1,
+//       profilepicture: 1
+//     }
+//   }
+// ]);
+
+//     return res.status(200).json({status: "true",message: "data getted successfully",data: commonElements,});
+
+//   } catch (error) {
+//     console.error(error);
+//     next(error)
+//   }
+// };
+
+
+// check bothfollow users get api
+
+export const checkbothFollow = async (req, res, next) => {
+  try {
+    const currentUserId = req.userId;
+
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser) {
+      throw new AppError("User not found", 404);
+    }
+
+    const setFollowersA = new Set(currentUser.followers.map(String));
+    const setFollowersB = new Set(currentUser.following.map(String));
+
+  // common elements get
+    const commonElementIds = [...setFollowersA].filter(element =>
+      setFollowersB.has(element)
+    );
+
+    const commonElements = await User.find({
+      _id: { $in: commonElementIds.map(id => new mongoose.Types.ObjectId(id)) }
+    }, { username: 1, profilepicture: 1 });
+    
+
+    return res.status(200).json({
+      status: "true",
+      message: "Data retrieved successfully",
+      data: commonElements
+    });
+
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+
+
+
+
+
 
 // list followers api
 
