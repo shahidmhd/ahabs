@@ -19,6 +19,7 @@ import Profiledetail from './Routes/Profiledetailroutes.js'
 import Defaultdetail from './Routes/Defaultrotes.js'
 import relationship from './Routes/Familyroutes.js'
 import errorHandlingMiddleware from './middlewear/errorhandlingmiddlewear.js';
+import Menu from './Routes/Admin/Menu.js'
 // Load environment variables from a .env file
 dotenv.config();
 
@@ -68,6 +69,7 @@ app.use('/api/work',WorkRouter)
 app.use('/api/profiledetail',Profiledetail)
 app.use('/api/default',Defaultdetail)
 app.use('/api/relationship',relationship)
+app.use('/api/menu',Menu)
 
 
 
@@ -104,4 +106,4 @@ process.on('unhandledRejection', (err) => {
 // Start the server and log a message when it starts listening
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-});
+});  
